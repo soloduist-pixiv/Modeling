@@ -652,7 +652,7 @@ def run_q1_q2() -> List[Dict]:
 
 
 def max_solvable_ball(chain_type: str, chain_length: float, scenarios: Sequence[Dict],
-                      m_hi: float = 6000.0, m_lo: float = 200.0) -> float:
+                      m_hi: float = 6000.0, m_lo: float = 200.0, family: str = "A") -> float:
     """
     Heaviest ball for which an equilibrium draft still exists.
 
@@ -662,7 +662,7 @@ def max_solvable_ball(chain_type: str, chain_length: float, scenarios: Sequence[
     """
     def solvable(m: float) -> bool:
         return all(solve_static(sc["v_wind"], sc["depth"], float(m), chain_type, chain_length,
-                                family="A", v_cur=sc["v_cur"]).ok for sc in scenarios)
+                                family=family, v_cur=sc["v_cur"]).ok for sc in scenarios)
 
     if solvable(m_hi):
         return m_hi
@@ -693,32 +693,24 @@ def search_ball_mass(v_wind: float, depth: float, chain_type: str, chain_length:
         ok = r.ok and r.barrel_angle_deg <= barrel_lim + 1e-9 and r.anchor_angle_deg <= anchor_lim + 1e-9
         return ok, result_to_public(r)
 
-    m_hi = min(m_hi, max_solvable_ball(chain_type, chain_length,
-                                       [{"depth": depth, "v_wind": v_wind, "v_cur": v_cur}], m_hi, m_lo))
-    if not (m_hi == m_hi) or not feasible(m_hi)[0]:
-        return {"found": False, "m_ceiling": m_hi,
-                "scan": [feasible(float(m))[1] for m in np.linspace(max(m_lo, m_hi - 1000), m_hi, 6)]}
+    m_star = lightest_feasible_mass(lambda m: feasible(m)[0], m_lo, m_hi, granularity=1.0)
+    if m_star is None:
+        return {"found": False,
+                "scan": [feasible(float(m))[1] for m in np.linspace(m_lo, m_hi, 8)]}
+    best = feasible(m_star)[1]
 
-    lo, hi = m_lo, m_hi
-    if feasible(m_lo)[0]:
-        hi = m_lo
-    else:
-        for _ in range(60):
+    # Continuous root of the binding constraint, for reporting the rounding gap.
+    lo, hi = max(m_lo, m_star - 300.0), m_star
+    if not feasible(lo)[0]:
+        for _ in range(40):
             mid = 0.5 * (lo + hi)
             if feasible(mid)[0]:
                 hi = mid
             else:
                 lo = mid
-
-    m_star = float(math.ceil(hi))
-    ok, best = feasible(m_star)
-    while not ok and m_star < m_hi:
-        m_star += 1.0
-        ok, best = feasible(m_star)
-
     return {
         "found": True, "best": best, "m_min_continuous": round(hi, 3),
-        "search_method": "monotone bisection + integer round-up",
+        "search_method": "coarse bracket + bisection + 1 kg round-up",
         "binding": "anchor" if best["anchor_angle_deg"] > barrel_lim else "barrel",
     }
 
