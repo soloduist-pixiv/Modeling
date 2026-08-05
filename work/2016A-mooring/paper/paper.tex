@@ -1,0 +1,344 @@
+% !TEX program = xelatex
+\documentclass[UTF8,a4paper,12pt]{ctexart}
+
+\usepackage{geometry}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+\sisetup{detect-all}
+
+\title{\textbf{系泊系统的设计}}
+\author{2016年高教社杯全国大学生数学建模竞赛~A题\\[0.4em]
+\small Freeze:~2016A-mooring-F1\quad 主模型：离散多刚体静力 + 约束网格设计}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+针对近浅海观测网传输节点的系泊系统设计问题，建立浮标--钢管--钢桶--重物球--锚链的平面静力模型。锚链按无档链环节长离散作为基线，并以连续悬链积分作对照；在风速、流速与水深情景下用约束网格搜索型号、链长与球重。在海水静止、水深 \SI{18}{m}、II~型链 \SI{22.05}{m}、球重 \SI{1200}{kg} 时：风速 \SI{12}{m/s} 下钢桶倾角约 \(1.20^\circ\)、趴链约 \SI{6.25}{m}、游动半径约 \SI{14.65}{m}；\SI{24}{m/s} 下钢桶约 \(4.57^\circ\)、锚端夹角约 \(4.66^\circ\)；\SI{36}{m/s} 下两约束均突破。将球重调至约 \SI{2238}{kg} 可使 \SI{36}{m/s} 时钢桶倾角 \(\le 5^\circ\) 且锚端夹角 \(\le 16^\circ\)。综合风、流与 \SIrange{16}{20}{m} 水深的网格设计，推荐 \textbf{V~型链、长 \SI{22.05}{m}、球重 \SI{5000}{kg}}（27~工况全可行）。局限：模型限于静水静力与平面假设，未计入波浪与三维流向；问题3为离散网格推荐而非连续全局唯一最优。
+\end{abstract}
+
+\noindent\textbf{关键词：}系泊系统；静力平衡；趴链；悬链对照；约束设计
+
+\section{问题重述}
+
+系泊系统由浮标、4~节钢管、密封钢桶（含水声设备）、可选重物球、电焊锚链与抗拖移锚组成。硬约束为：锚链末端切线与海床夹角 \(\varphi\le 16^\circ\)；钢桶与竖直线夹角 \(\theta_{\mathrm{b}}\) 超过 \(5^\circ\) 时设备效果较差（设计中升格为硬约束）。目标是在满足约束的前提下，使浮标吃水深度与游动区域尽可能小。
+
+\begin{table}[H]
+\centering
+\caption{答題清单}
+\label{tab:todo}
+\begin{tabular}{clp{8.5cm}}
+\toprule
+子问 & 对应章节 & 交付物 \\
+\midrule
+问题1 & \S\ref{sec:q1} & 风速 12/\SI{24}{m/s}：各节倾角、锚链形状、吃水、游动半径 \\
+问题2 & \S\ref{sec:q2} & \SI{36}{m/s} 状态；调节球重使 \(\theta_{\mathrm{b}}\le5^\circ\)、\(\varphi\le16^\circ\) \\
+问题3 & \S\ref{sec:q3} & 风+流+变水深下的型号/链长/球重方案与多工况表 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{问题分析与方案池}
+
+各子问属静力机构求解与约束设计。按机制族给出三类方案（禁止同族伪三方案）：
+
+\begin{table}[H]
+\centering
+\caption{跨机制族方案池}
+\label{tab:families}
+\begin{tabular}{cll}
+\toprule
+方案 & 机制族 & 角色 \\
+\midrule
+A & 离散多刚体铰接静力 & 主模型 / 基线 \\
+B & 连续重链悬链积分 + 刚性杆段 & 对照（误差条） \\
+C & 正演外包的约束网格搜索 & 问题2/3 设计壳 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+预注册指标：\(\theta_{\mathrm{b}}\)、\(\varphi\)（硬约束）、游动半径 \(R\)、吃水 \(d\)；有意义阈值 \(\delta\)：倾角 \(0.5^\circ\)、半径 \SI{0.1}{m}、吃水 \SI{0.05}{m}。
+
+\section{基本假设}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item 静水平衡，忽略波浪与动力响应；放松则倾角与张力可能显著放大。
+  \item 系统在风/流向平面内运动；构件刚性，铰接无摩擦。
+  \item 风力/流力用题面公式；浮标风投影取直径\(\times\)干舷，流投影取迎流面积。
+  \item 钢管与钢桶在所求吃水下完全浸没；锚固定于平坦海床。
+  \item 重物球与锚链按钢密度估算排水并计入净重。
+  \item \(g=\SI{9.8}{m/s^2}\)，\(\rho=\SI{1025}{kg/m^3}\)。
+  \item 问题3流速沿水深均匀（题面未给剖面）。
+\end{enumerate}
+
+\section{模型建立}
+
+\subsection{符号与荷载}
+
+记吃水为 \(d\)（m），风速 \(v_w\)，流速 \(v_c\)。浮标风力
+\begin{equation}
+F_w=0.625\cdot\bigl(2\cdot(2-d)\bigr)\cdot v_w^2,
+\end{equation}
+浮标水流力 \(F_{c,b}=374\cdot(2d)\cdot v_c^2\)；钢管/钢桶另计柱体投影流力。水平合力记为 \(H\)。
+
+浮标浮力 \(B=\rho g\pi R^2 d\)。浮标底铰竖直张力分量
+\begin{equation}
+V_0=B-m_{\mathrm{buoy}}g.
+\end{equation}
+构件净重（向下为正）\(G=mg-\rho g V_{\mathrm{disp}}\)。
+
+\subsection{刚性杆段（钢管、钢桶）}
+
+对长 \(L\)、净重 \(G\) 的均匀杆，上端竖直张力 \(V_u\)、水平张力 \(H\)，由力矩平衡得与竖直夹角
+\begin{equation}
+\theta=\arctan\frac{H}{V_u-G/2},\qquad V_{\ell}=V_u-G.
+\end{equation}
+四节钢管与钢桶依次传递；重物球为集中净重，链顶竖直张力 \(V_c=V_{\ell}-G_{\mathrm{ball}}\)。
+
+\subsection{Family A：离散锚链与趴链（主模型）}
+
+链节长取附表节长（II~型 \SI{0.105}{m}），各节用同上力矩公式。若 \(V_c < w L_{\mathrm{chain}}\)（\(w\) 为单位长度水中净重），则出现趴链：悬空长度 \(L_s=V_c/w\)，抬起点 \(\varphi=0\)；否则全悬空，末端
+\begin{equation}
+\varphi=\arctan(V_{\mathrm{end}}/H).
+\end{equation}
+几何闭合：
+\begin{equation}
+d+\sum_i L_i\cos\theta_i + y_{\mathrm{chain}}=H_{\mathrm{water}}.
+\end{equation}
+对 \(d\) 搜索使竖直闭合误差充分小。游动半径为各杆水平投影与链水平跨度之和。
+
+\subsection{Family B：连续悬链对照}
+
+悬空段按局部 \(\alpha=\arctan(V/H)\) 积分；趴链判定同 A。用于估计离散误差，\textbf{不替代 A 作主报}（主指标无支配性增益）。
+
+\subsection{Family C：约束设计}
+
+问题2：球重一维搜索，取满足 \(\theta_{\mathrm{b}}\le5^\circ,\varphi\le16^\circ\) 的最小球重。\\
+问题3：在型号\(\times\)链长\(\times\)球重网格上要求情景集全部满足约束，再按平均/最劣游动半径排序；并在水深\(\times\)风速\(\times\)流速的 27~工况全因子网格上复核。
+
+\section{计算结果}
+\label{sec:results}
+
+可复现脚本：\texttt{code/mooring\_solve.py}；数值汇总：\texttt{results/metrics.json}。
+
+\subsection{问题1（及 \SI{36}{m/s} 对照）}
+\label{sec:q1}
+
+条件：水深 \SI{18}{m}，II~型链 \SI{22.05}{m}，球重 \SI{1200}{kg}，\(v_c=0\)。主模型 A：
+
+\begin{table}[H]
+\centering
+\caption{问题1--2 固定球重 \SI{1200}{kg} 时的静力状态（Family~A）}
+\label{tab:q1}
+\begin{tabular}{crrrrrr}
+\toprule
+\(v_w\) & \(d\)/m & \(R\)/m & \(\theta_{\mathrm{b}}\)/\(^\circ\) & \(\varphi\)/\(^\circ\) & 趴链/m & \(H\)/N \\
+\midrule
+12 & 0.683 & 14.65 & 1.20 & 0.00 & 6.25 & 237 \\
+24 & 0.697 & 17.78 & 4.57 & 4.66 & 0 & 938 \\
+36 & 0.720 & 18.87 & 9.45 & 20.96 & 0 & 2074 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{钢管倾角（自上而下，单位：度）}
+\label{tab:pipes}
+\begin{tabular}{crrrr}
+\toprule
+\(v_w\)/(m/s) & \(\theta_1\) & \(\theta_2\) & \(\theta_3\) & \(\theta_4\) \\
+\midrule
+12 & 1.16 & 1.17 & 1.18 & 1.18 \\
+24 & 4.41 & 4.44 & 4.47 & 4.50 \\
+36 & 9.15 & 9.21 & 9.26 & 9.32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\SI{12}{m/s} 时约束满足且存在趴链；\SI{24}{m/s} 两约束仍满足；\SI{36}{m/s} 时 \(\theta_{\mathrm{b}}\)、\(\varphi\) 均超限。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{figures/fig_chain_shape.png}
+\caption{不同风速下锚链形状（Family~A；含问题2调球后对照）}
+\label{fig:chain}
+\end{figure}
+
+\textbf{归因：}风速升高 \(\Rightarrow\) 干舷风力 \(H\) 升 \(\Rightarrow\) 各杆 \(\theta\) 与链端 \(\varphi\) 升；趴链消失后全长参与水平跨距，游动半径趋于链长量级。
+
+Family~B 与 A 在 12/\SI{24}{m/s} 下 \(\theta_{\mathrm{b}}\) 与 \(R\) 一致到报告精度，\(\varphi\) 差 \(\le 0.19^\circ\)（图~\ref{fig:family}）。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_family_contrast.png}
+\caption{Family~A（离散）与 B（悬链）主指标对照}
+\label{fig:family}
+\end{figure}
+
+\subsection{问题2}
+\label{sec:q2}
+
+在 \SI{36}{m/s}、其余同问题1下，球重 \SI{1200}{kg} 不可行。一维搜索得\textbf{最小可行球重约 \SI{2238}{kg}}：
+
+\begin{table}[H]
+\centering
+\caption{问题2 最小可行球重对应状态}
+\label{tab:q2}
+\begin{tabular}{lrrrrr}
+\toprule
+球重/kg & \(\theta_{\mathrm{b}}\)/\(^\circ\) & \(\varphi\)/\(^\circ\) & \(R\)/m & \(d\)/m & 管倾角/\(^\circ\) \\
+\midrule
+2238 & 4.46 & 16.00 & 18.53 & 0.990 & 4.37--4.42 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+对照 B 的最小可行球重约 \SI{2221}{kg}（\(\Delta\approx\SI{17}{kg}\)）。球重--倾角曲线见图~\ref{fig:ball}：\(\varphi\) 约束先于 \(\theta_{\mathrm{b}}\) 成为紧约束。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{figures/fig_ball_sweep.png}
+\caption{问题2：球重对钢桶角、锚端角与游动半径的影响（\SI{36}{m/s}）}
+\label{fig:ball}
+\end{figure}
+
+\subsection{问题3}
+\label{sec:q3}
+
+在型号\(\times\)链长\(\times\)球重网格上搜索，并在
+\[
+\{\text{水深 }16,18,20\}\times\{\text{风 }12,24,36\}\times\{\text{流 }0,0.75,1.5\}
+\]
+共 27~工况上复核可行性。推荐方案：
+
+\begin{center}
+\textbf{V~型锚链，长度 \SI{22.05}{m}，重物球 \SI{5000}{kg}.}
+\end{center}
+
+\begin{table}[H]
+\centering
+\caption{推荐方案在代表性训练情景下的状态（Family~A）}
+\label{tab:q3}
+\begin{tabular}{ccrrrrr}
+\toprule
+水深 & \(v_w\) & \(v_c\) & \(d\)/m & \(R\)/m & \(\theta_{\mathrm{b}}\)/\(^\circ\) & \(\varphi\)/\(^\circ\) \\
+\midrule
+16 & 36 & 1.5 & 1.826 & 19.39 & 4.56 & 0.00 \\
+18 & 36 & 1.5 & 1.845 & 18.41 & 4.51 & 0.00 \\
+20 & 36 & 1.5 & 1.865 & 17.27 & 4.45 & 9.03 \\
+18 & 24 & 1.0 & 1.807 & 16.70 & 2.06 & 0.00 \\
+16 & 36 & 0 & 1.761 & 15.55 & 0.49 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{figures/fig_q3_scenarios.png}
+\caption{问题3推荐方案在训练情景下的钢桶角与锚端角}
+\label{fig:q3}
+\end{figure}
+
+27~工况全可行：最劣 \(\theta_{\mathrm{b}}\approx4.56^\circ\)、\(\varphi\approx9.03^\circ\)、最劣 \(R\approx\SI{19.39}{m}\)。
+
+\textbf{机制：}大球重抬高吃水 \(\Rightarrow\) 干舷与 \(F_w\) 下降，同时增大恢复力矩；重型链提高单位长度净重，利于趴链与控 \(\varphi\)。代价是吃水接近 \SI{2}{m} 上限，裕度有限。
+
+\begin{table}[H]
+\centering
+\caption{问题3 Pareto 备选（本模型 27~工况全可行）}
+\label{tab:pareto}
+\begin{tabular}{llrrr}
+\toprule
+方案 & 参数 & 最劣 \(R\)/m & 最劣 \(\theta_{\mathrm{b}}\) & 最劣 \(\varphi\) \\
+\midrule
+主推荐 & V/\SI{22.05}{m}/5000\,kg & 19.39 & \(4.56^\circ\) & \(9.03^\circ\) \\
+轻球备选 & V/\SI{22.05}{m}/4500\,kg & 19.36 & \(4.99^\circ\) & \(9.68^\circ\) \\
+加长链备选 & V/\SI{26}{m}/4500\,kg & 23.31 & \(4.99^\circ\) & \(0^\circ\) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+加长链方案趴链裕度更大，但最劣游动半径显著增大；在“尽量小游动区域”目标下保留短链重球为主推荐。
+
+\section{检验与敏感性}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{族对照：}A/B 主指标差 \(<\delta\) \(\Rightarrow\) 离散误差非主矛盾。
+  \item \textbf{直杆链基线 M0：}将悬空链简化为单一直杆时，\SI{12}{m/s} 游动半径相对 A 低估约 \SI{2.4}{m}（约 \(16\%\)），说明悬链/离散曲率不可省略。
+  \item \textbf{球浮力消融（\SI{24}{m/s}）：}忽略球排水后 \(\theta_{\mathrm{b}}\) 由 \(4.57^\circ\) 变为 \(3.85^\circ\) 并改变趴链判定，净重模块不可删。
+  \item \textbf{密度敏感性：}\(\rho\in\{1020,1025,1030\}\) 时 \(\theta_{\mathrm{b}}\in[4.55^\circ,4.58^\circ]\)，变化 \(<\delta\)。
+  \item \textbf{反事实：}“加重球必定增大游动半径”与扫描不符——可行域内 \(R\) 缓变，约束改善由 \(\theta_{\mathrm{b}}\)、\(\varphi\) 主导。
+\end{enumerate}
+
+\section{优缺点}
+
+\textbf{优点（有证据）：}基线可复现；A/B 交叉验证；问题2/3 约束可检查；吃水--风力耦合被显式利用。
+
+\textbf{缺点 / 中等风险：}
+\begin{itemize}[leftmargin=1.5em]
+  \item 静力、无浪；实际海域可能偏危险侧。
+  \item 风/流投影与均匀流简化。
+  \item 问题3为网格推荐，不是连续空间唯一最优。
+  \item 推荐方案吃水高，对密度/生物附着等扰动敏感。
+\end{itemize}
+
+\section{改进方向}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item 引入规则波或谱浪下的准静力/时域张力包络。
+  \item 流剖面与三维风向不一致时的矢量合成。
+  \item 在可行域内对 (型号,~链长,~球重) 做更细多目标 Pareto。
+  \item 锚抓力曲线替代单纯 \(\varphi\le16^\circ\) 代理。
+\end{enumerate}
+
+\section{结论}
+
+在给定静力假设与 Freeze~\texttt{2016A-mooring-F1} 证据下：
+\begin{enumerate}[leftmargin=1.5em]
+  \item 问题1给出 12/\SI{24}{m/s} 全套几何与倾角，\SI{24}{m/s} 仍满足工作约束；
+  \item 问题2在 \SI{36}{m/s} 需将球重提至约 \textbf{\SI{2238}{kg}} 方同时满足 \(\theta_{\mathrm{b}}\le5^\circ\) 与 \(\varphi\le16^\circ\)；
+  \item 问题3网格推荐 \textbf{V~型、\SI{22.05}{m}、球 \SI{5000}{kg}}，27~工况约束通过，但吃水偏高，适用性限于本题静力与投影假设。
+\end{enumerate}
+
+\appendix
+\section{主要符号}
+\begin{table}[H]
+\centering
+\begin{tabular}{cl}
+\toprule
+符号 & 含义 \\
+\midrule
+\(d\) & 浮标吃水 \\
+\(H\) & 水平荷载合力 \\
+\(\theta\) & 与竖直线夹角 \\
+\(\varphi\) & 锚端切线与海床夹角 \\
+\(R\) & 游动半径（锚到浮标轴水平距） \\
+\(w\) & 锚链单位长度水中净重 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{复现}
+\begin{verbatim}
+cd work/2016A-mooring
+python3 code/mooring_solve.py
+python3 code/make_figures.py
+python3 code/cross_branch_supplement.py
+cd paper && xelatex paper.tex
+\end{verbatim}
+
+\end{document}
