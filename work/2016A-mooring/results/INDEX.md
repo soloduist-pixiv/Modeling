@@ -3,13 +3,16 @@
 | 文件 | 说明 |
 |------|------|
 | `metrics.json` | Q1–Q3 全量数值、族对比、消融、Q3 Pareto/hold-out/稠密扫描 |
+| `results_tables.xlsx` | **多工作表 Excel 结果表**（摘要、Q1–Q3、Pareto、扫描、敏感性等） |
 | `fig_chain_shape.png` | 浮标–管–桶–链整体构型（不同风速） |
 | `fig_ball_sweep.png` | Q2 球重–倾角/游动半径 |
 | `fig_family_contrast.png` | Family A vs B |
 | `fig_q3_scenarios.png` | Q3 推荐方案训练情景倾角 |
 | `fig_q3_pareto.png` | Q3 可行设计 Pareto 前沿 |
 | `../code/mooring_solve.py` | 可复现求解器（rev2） |
+| `../code/export_xlsx.py` | 导出 Excel 表 |
 | `../code/make_figures.py` | 作图脚本 |
+| `../paper/paper.tex` / `paper.pdf` | 完整排版论文 |
 
 ## 预注册指标快照（Family A，主模型，Freeze F2）
 
