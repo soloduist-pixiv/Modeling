@@ -8,7 +8,7 @@
 
 | # | 交付物 | 路径 |
 |---|--------|------|
-| 1 | 全文 | `paper/main.md` |
+| 1 | 全文（LaTeX + PDF + Markdown） | `paper/paper.tex`，`paper/paper.pdf`，`paper/main.md` |
 | 2 | Freeze + results | `Freeze.md`, `results/` |
 | 3 | 叙事审计 | `NarrativeAudit.md` |
 | 4 | 缺陷–局限映射 | `DefectMap.md` |
@@ -38,4 +38,13 @@ Budgets: write_round=5/5  experiment_rewind=0/1
 cd work/2016A-mooring
 python3 code/mooring_solve.py
 python3 code/make_figures.py
+python3 code/cross_branch_supplement.py   # 可选：对照/27工况复核
+cd paper && xelatex paper.tex && xelatex paper.tex
 ```
+
+## 图表清单（已编入 `paper.tex`）
+
+| 类型 | 文件 / 表号 |
+|------|-------------|
+| 图 | `fig_chain_shape` 锚链形状；`fig_family_contrast` 族对照；`fig_ball_sweep` 球重扫描；`fig_q3_scenarios` 问题3情景 |
+| 表 | 答題清单、方案池、Q1状态、钢管倾角、Q2球重、Q3情景、Pareto备选、符号表 |

@@ -7,8 +7,10 @@
 | `fig_ball_sweep.png` | Q2 球重–倾角/游动半径 |
 | `fig_family_contrast.png` | Family A vs B |
 | `fig_q3_scenarios.png` | Q3 推荐方案训练情景倾角 |
+| `cross_branch_supplement.json` | M0对照、27工况、Pareto备选 |
 | `../code/mooring_solve.py` | 可复现求解器 |
 | `../code/make_figures.py` | 作图脚本 |
+| `../paper/paper.tex` / `paper.pdf` | LaTeX 论文与 PDF |
 
 ## 预注册指标快照（Family A，主模型）
 
