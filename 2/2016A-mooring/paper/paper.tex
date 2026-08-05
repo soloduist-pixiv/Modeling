@@ -99,17 +99,63 @@
 
 \section{问题分析}
 
-\subsection{三个子问的性质不同}
+\subsection{目标、约束与变量分解}
 
-问题 1 是\textbf{正演}：参数全给定，求静力平衡态。
-问题 2 是\textbf{单变量约束求解}：在一维设计空间上找可行域边界。
-问题 3 是\textbf{不确定环境下的多目标鲁棒设计}：设计变量离散（型号 \(\times\) 整数节数 \(\times\) 球重），
-环境是三维连续箱体 \(16\le h\le20\)、\(0\le v_w\le36\)、\(0\le v_c\le1.5\)，
-题面未给出该箱体上的概率分布，因此只能按最劣情景处理。
+把题面拆成四类对象，后续建模与求解都围绕它们展开：
 
-\subsection{一个决定全局的观察}
+\begin{table}[H]
+\centering
+\caption{问题要素分解}
+\begin{tabular}{lp{11.2cm}}
+\toprule
+类别 & 内容 \\
+\midrule
+已知 & 浮标/钢管/钢桶几何与质量；I--V 型链节长与线密度；经验风/流力公式；
+问题 1/2 的水深 \SI{18}{m} 与给定球重/链长 \\
+设计变量 & 锚链型号、链长（须为节长整数倍）、重物球质量 \(m_b\) \\
+状态变量 & 吃水 \(d\)、各杆倾角 \(\{\theta_i\}\)、锚端夹角 \(\varphi\)、游动半径 \(R\)、趴链长度 \\
+环境输入 & 风速 \(v_w\)、流速 \(v_c\)、水深 \(h\)（问题 3 为箱体） \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-把三个子问放在一起看，真正约束设计的不是锚链，而是浮标本身。
+硬约束 \(\varphi\le16^\circ\) 对应“节点不丢失”；\(\theta\le5^\circ\) 对应“设备效果可接受”。
+目标“吃水、游动区域、钢桶倾角尽可能小”彼此冲突——尤其 \(\theta\) 与吃水（干舷）不可同时最优，见 \S\ref{sec:insight}。
+
+\subsection{三个子问的数学性质与递进关系}
+
+\begin{table}[H]
+\centering
+\caption{子问类型与递进}
+\footnotesize
+\begin{tabularx}{\textwidth}{c>{\raggedright\arraybackslash}p{2.4cm}X>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{3.0cm}}
+\toprule
+子问 & 数学类型 & 输入 / 输出 & 相对前一问新增难点 \\
+\midrule
+问题 1 & \textbf{正演} &
+输入：型号/链长/\(m_b\)/\(v_w\) 全给定，\(v_c=0\)；
+输出：\(\theta,\varphi,R,d\)，链形 &
+姿态--投影--张力耦合；趴链/悬链切换 \\
+问题 2 & \textbf{单变量约束求界} &
+输入：同问题 1 结构，\(v_w=36\)，调 \(m_b\)；
+输出：最小可行球重及对应态 &
+一维设计空间上找 \(\theta,\varphi\) 同时可行的边界 \\
+问题 3 & \textbf{不确定环境下的多目标鲁棒设计} &
+输入：型号\(\times\)整数节数\(\times m_b\)，环境箱体无概率分布；
+输出：设计方案 + 多情景状态 &
+离散--连续混合；三维环境包络；多目标无唯一最优 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+三者不是并列的三道题，而是同一条正演器上的三层用法：
+问题 1 标定并验证正演器；问题 2 在其上做一维可行域搜索；
+问题 3 把正演器包进最劣情景外壳，再在离散设计空间上做多目标排序。
+因此\textbf{先把静力正演做扎实，再谈设计}，是全文的组织原则。
+
+\subsection{决定全局的力学观察}\label{sec:insight}
+
+真正约束设计的不是锚链，而是浮标本身。
 原因是\textbf{重物球挂在钢桶下方}：球重通过钢桶向上传递为张力，
 但钢桶顶端的竖向拉力只等于“浮标净浮力减去四节钢管净重”，与球重、链型、链长都无关。于是
 \begin{equation}\label{eq:key}
@@ -118,6 +164,56 @@
 只是吃水 \(d\) 的函数。球重之所以能压小 \(\theta\)，完全是因为它把浮标压得更深。
 这把“倾角、吃水、游动区域三者尽可能小”的模糊目标，
 变成了一个\textbf{可以解析写出的取舍}：要小倾角就必须要大吃水，二者不可兼得（\S\ref{sec:bound}）。
+由此立刻得到三条解题指引：
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.15em]
+  \item 问题 2/3 中加重球是通过加深吃水间接压 \(\theta\)，不是改变钢桶顶端的力臂结构；
+  \item 在 \(\theta\le5^\circ\) 覆盖峰值工况时，吃水存在与设计无关的下界；
+        搜索结果若远高于该下界才值得怀疑，贴近下界则属物理必然；
+  \item 设计自由度主要花在游动半径与抗拖移裕度（\(\varphi\)）的取舍上，而非“再压一点吃水”。
+\end{enumerate}
+
+\subsection{建模难点与对策}
+
+\begin{table}[H]
+\centering
+\caption{难点--对策对照}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.2cm}XX}
+\toprule
+难点 & 表现 & 本文对策 \\
+\midrule
+非线性耦合 & 投影依赖姿态，姿态依赖张力；有流时 \(H\) 沿线递增 &
+杆段力矩定点迭代 + 分段 \(H\) 递推 \\
+趴链切换 & 低风速有趴链、高风速全悬空，\(\varphi\) 行为突变 &
+竖向张力判据划分悬空段/趴链段 \\
+多目标冲突 & 小 \(\theta\Leftrightarrow\) 大吃水；短链减 \(R\) 却抬高 \(\varphi\) &
+解析下界锁定 \(\theta\)--\(d\)；Pareto 报告 \(R\)--\(\varphi\) 取舍 \\
+离散--连续混合 & 型号/节数离散，球重/吃水连续 &
+整数节约束 + 对固定（型号，节数）二分最轻球重 \\
+环境无分布 & 问题 3 箱体无概率密度 &
+单调性 \(\to\) 最劣角点；另给机会约束与干舷优先备选 \\
+经验系数不确定 & \(0.625\)、\(374\) 未实测标定 &
+消融/龙卷风图定位主导源；机会约束量化满足率 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{整体建模与求解流程}
+
+全文章按“荷载 \(\to\) 杆段递推 \(\to\) 链段闭合 \(\to\) 设计外壳”四层搭建：
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.12em]
+  \item 风/流力 \(\to H_0(d)\)；杆/链投影阻力；
+  \item 钢管/钢桶力矩平衡，分段递推 \(H,V\)；
+  \item 重物球浮力 + 自身阻力接入链顶；
+  \item Family A：离散链 + 趴链 + 竖向闭合求 \(d\)（问题 1 正演）；
+  \item Family B：连续重链积分对照误差条；
+  \item 由 \(\theta\le5^\circ\) 推出 \(d_{\min}\)（与设计无关）；
+  \item 固定结构，对 \(m_b\) 二分最轻可行球重（问题 2）；
+  \item Family C：单调性角点 \(\to\) 枚举（型号,\(N\)）\(\to\) 最轻球
+        \(\to\) Pareto \(\to\) 熵权 TOPSIS（S1）
+        \(\to\) 机会约束（S1\('\))/干舷优先（S2）（问题 3）；
+  \item 守恒、收敛、消融、扫描、MC、权重随机化（\S\ref{sec:check}）。
+\end{enumerate}
 
 \subsection{跨机制族方案池}
 
@@ -138,6 +234,7 @@ C & 正演外包的最劣情景鲁棒设计 & 问题 2/3 设计壳 & 无法回�
 预注册指标：\(\theta_{\mathrm{bar}}\)、\(\varphi_{\mathrm{anchor}}\)（硬约束），
 \(R_{\mathrm{swim}}\)、\(d_{\mathrm{draft}}\)（目标）；
 有意义差阈值 \(\delta\)：倾角 \(0.5^\circ\)、半径 \SI{0.1}{m}、吃水 \SI{0.05}{m}。
+不满足 \(\delta\) 的“改进”一律不升级主模型。
 
 \section{基本假设}
 
@@ -164,7 +261,39 @@ C & 正演外包的最劣情景鲁棒设计 & 问题 2/3 设计壳 & 无法回�
 \label{fig:schematic}
 \end{figure}
 
-\subsection{荷载与净重}
+\subsection{建模流程总览}
+
+全文章按“荷载 \(\to\) 杆段递推 \(\to\) 链段闭合 \(\to\) 设计外壳”四层搭建，每一层只回答一个问题：
+
+\begin{table}[H]
+\centering
+\caption{建模四层}
+\footnotesize
+\begin{tabularx}{\textwidth}{cXXX}
+\toprule
+层级 & 回答的问题 & 对应小节 & 下游入口 \\
+\midrule
+L1 荷载 & 给定 \(d,v_w,v_c\) 与姿态，水平力从哪来？ & \S\ref{sec:load} & \(H_0\)、各段 \(F_c\)、球阻力 \\
+L2 杆段 & 钢管/钢桶如何倾斜、张力如何向下传？ & \S\ref{sec:rod} & 链顶 \((H,V)\) \\
+L3 正演闭合 & 如何唯一确定吃水与链形？ & \S\ref{sec:chain}--\ref{sec:check0} & 平衡态 \((\theta,\varphi,R,d)\) \\
+L4 设计壳 & 如何在环境箱体上选型？ & \S\ref{sec:bound}--\ref{sec:robust} & S1 / S1\('\) / S2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{单次正演算法}（问题 1 及一切状态评价的公共核）：
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.12em]
+  \item 猜测吃水 \(d\)；由荷载模型算 \(H_0(d)\) 与浮标净浮力 \(V_0(d)\)。
+  \item 自上而下对 4 节钢管 + 钢桶做力矩定点迭代，分段更新 \(H,V\)。
+  \item 接入重物球净重与阻力，得链顶条件；按趴链判据递推锚链。
+  \item 检验竖向闭合 \(d+\sum L_i\cos\theta_i+y_{\mathrm{chain}}=h\)；
+        不满足则调整 \(d\)（网格括区 + 二分）。
+  \item 事后做水平/竖向守恒校核；不通过则拒绝该解。
+\end{enumerate}
+问题 2 在此核外包一层“对 \(m_b\) 的可行域搜索”；
+问题 3 再外包“角点归约 + 离散枚举 + 多目标排序”。下文按 L1\(\to\)L4 展开。
+
+\subsection{荷载与净重}\label{sec:load}
 
 记吃水 \(d\)、风速 \(v_w\)、流速 \(v_c\)。浮标风力与水流力
 \begin{equation}
@@ -214,7 +343,7 @@ S=2rL|\cos\theta|+\pi r^2|\sin\theta|,\qquad F_c=374\,S\,v_c^2 .
 \end{tabular}
 \end{table}
 
-\subsection{刚性杆段：力矩平衡与分段水平张力}
+\subsection{刚性杆段：力矩平衡与分段水平张力}\label{sec:rod}
 
 对长 \(L\)、净重 \(G\)、顶端张力 \((H_u,V_u)\)、分布水流力 \(F_c\)（合力作用于杆中点）的均匀杆，
 对下端取矩得
@@ -241,7 +370,7 @@ H_{\mathrm{chain}}=H_{\ell}+F_{c,\mathrm{ball}} .
 \label{fig:load}
 \end{figure}
 
-\subsection{Family A：离散锚链、趴链与整数链节}
+\subsection{Family A：离散锚链、趴链与整数链节}\label{sec:chain}
 
 链节长取附表值（II 型 \SI{0.105}{m}）。名义长度取整为 \(N=\mathrm{round}(L/\ell)\)、\(L=N\ell\)，
 保证可制造（例如 V 型 \SI{22.05}{m} 对应 122.5 节，不可制造，已在搜索中剔除）。
@@ -269,7 +398,7 @@ d+\sum_i L_i\cos\theta_i+y_{\mathrm{chain}}(d)=H_{\mathrm{water}} .
 （有流时同样允许 \(H\) 沿弧长增长），趴链判据同 A。
 仅用于给离散误差条，不作主报模型。
 
-\subsection{独立守恒校核}
+\subsection{独立守恒校核}\label{sec:check0}
 
 每个收敛解都做两项不参与求解的事后校核：
 水平方向要求锚端张力等于浮标荷载加沿途全部阻力之和；
@@ -376,14 +505,19 @@ d+\sum_i L_i\cos\theta_i+y_{\mathrm{chain}}(d)=H_{\mathrm{water}} .
 因此再解一个机会约束版本：对海水密度、链条投影宽度、风载与流载系数联合抽样，
 求使最劣角点约束满足率 \(\ge95\%\) 的最轻球重。
 
-\section{结果}
+\section{问题求解}
 
 可复现脚本：\texttt{code/mooring\_solve.py}（数值）与 \texttt{code/make\_figures.py}（图）；
 全量数值见 \texttt{results/metrics.json}，分表见 \texttt{results/results\_tables.xlsx}。
+本节按问题分析中的递进关系逐问作答：先正演、再求界、最后鲁棒设计。
 
-\subsection{问题 1（附 \(36\,\mathrm{m/s}\) 对照）}\label{sec:q1}
+\subsection{问题 1：给定参数下的静力正演}\label{sec:q1}
 
-条件：水深 \SI{18}{m}，II 型链 \SI{22.05}{m}（210 节），球重 \SI{1200}{kg}，\(v_c=0\)。
+\paragraph{解题思路。}
+问题 1 是正演核的标定题。参数全部给定（水深 \SI{18}{m}，II 型链 \SI{22.05}{m}/210 节，
+球重 \SI{1200}{kg}，\(v_c=0\)），只需对 \(v_w\in\{12,24\}\) 各跑一次正演算法，
+并附 \SI{36}{m/s} 作为进入问题 2 的对照。关注点有三：约束是否满足；趴链是否存在；
+Family B 对照误差是否小于预注册阈值。
 
 \begin{table}[H]
 \centering
@@ -427,11 +561,19 @@ Family B 与 A 在 12/24/36 m/s 下 \(\theta\)、\(R\) 一致到报告精度，\
 \label{fig:swim}
 \end{figure}
 
-\subsection{问题 2}\label{sec:q2}
+\subsection{问题 2：一维球重可行域求界}\label{sec:q2}
 
-\SI{36}{m/s}、其余同问题 1 时球重 \SI{1200}{kg} 不可行
-（\(\theta=9.45^\circ\)、\(\varphi=20.96^\circ\)）。
-粗扫描 + 二分得连续最小球重 \SI{2237.28}{kg}，取整到 \textbf{\SI{2238}{kg}}（表~\ref{tab:q2}）。
+\paragraph{解题思路。}
+由表~\ref{tab:q1}，\SI{36}{m/s}、球重 \SI{1200}{kg} 时 \(\theta=9.45^\circ\)、\(\varphi=20.96^\circ\)，双双越限。
+问题 2 只需在其余参数不变的条件下调节 \(m_b\)。由 \S\ref{sec:insight}，
+加重球通过加深吃水同时压低 \(\theta\) 与 \(\varphi\)，且两者关于 \(m_b\) 单调下降，
+故可行集是球重轴上的一个区间，下沿即为“最小可行球重”。求解步骤：
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.12em]
+  \item 粗扫描 \(m_b\) 括出可行区间下沿；
+  \item 二分至连续最优 \SI{2237.28}{kg}；
+  \item 向上取整到铸造步长 \SI{10}{kg} \(\to\) \textbf{\SI{2238}{kg}}；
+  \item 用 Family B 与链环细分估计离散偏差，决定有效数字。
+\end{enumerate}
 
 \begin{table}[H]
 \centering
@@ -468,12 +610,23 @@ Family B 的对应值为 \SI{2220}{kg}（\(\Delta=\SI{18}{kg}\)，0.8\%）。
 \label{fig:sweep}
 \end{figure}
 
-\subsection{问题 3}\label{sec:q3}
+\subsection{问题 3：不确定环境下的鲁棒选型}\label{sec:q3}
 
-搜索空间为 5 种型号 \(\times\) \(16\)--\SI{32}{m} 内的整数节数（步长约 \SI{1}{m}）\(\times\) 球重连续。
-在 4 个最劣角点上硬约束全部可行的（型号，节数，最轻球重）组合共 \textbf{29} 个，
-五目标 Pareto 前沿 \textbf{24} 个。熵权为：最劣游动半径 0.270、最劣锚端角 0.271、
-球重 0.222、最大吃水 0.142、最劣桶倾角 0.095。
+\paragraph{解题思路。}
+问题 3 在风、流、变水深同时存在时做设计。关键障碍有三：
+(i) 环境箱体无概率分布；
+(ii) \(\theta\) 与吃水的硬冲突已由解析下界锁定；
+(iii) 设计变量离散--连续混合。按 \S\ref{sec:robust} 的五步求解：
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.12em]
+  \item \textbf{归约：}逐轴单调性 \(\Rightarrow\) 最劣角点 \((16,36,1.5)\) 控 \(\theta\)、
+        \((20,36,1.5)\) 控 \(\varphi\)（另两角点控吃水与无流链形）；
+  \item \textbf{枚举：}5 型号 \(\times\) \(16\)--\SI{32}{m} 内整数节数，对每个组合二分最轻可行球重；
+  \item \textbf{筛选：}4 角点硬约束全过者共 29 个，五目标 Pareto 前沿 24 个；
+  \item \textbf{排序：}熵权 TOPSIS 得名义最优 S1，权重随机化检验稳健性；
+  \item \textbf{分叉：}机会约束得可靠性版 S1\('\)；放松 \(\theta\) 覆盖范围得干舷优先 S2。
+\end{enumerate}
+熵权为：最劣游动半径 0.270、最劣锚端角 0.271、球重 0.222、最大吃水 0.142、最劣桶倾角 0.095。
+吃水权最低，与 \S\ref{sec:insight}“吃水几乎由下界锁定”一致。
 
 \subsubsection{S1 名义最优：V 型锚链，\SI{26.82}{m}（149 节），重物球 \SI{4270}{kg}}
 
