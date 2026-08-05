@@ -2,17 +2,18 @@
 
 | 文件 | 说明 |
 |------|------|
-| `metrics.json` | Q1–Q3 全量数值、族对比、消融、Q3 设计与 hold-out |
-| `fig_chain_shape.png` | 不同风速锚链形状 |
+| `metrics.json` | Q1–Q3 全量数值、族对比、消融、Q3 Pareto/hold-out/稠密扫描 |
+| `fig_chain_shape.png` | 浮标–管–桶–链整体构型（不同风速） |
 | `fig_ball_sweep.png` | Q2 球重–倾角/游动半径 |
 | `fig_family_contrast.png` | Family A vs B |
 | `fig_q3_scenarios.png` | Q3 推荐方案训练情景倾角 |
-| `../code/mooring_solve.py` | 可复现求解器 |
+| `fig_q3_pareto.png` | Q3 可行设计 Pareto 前沿 |
+| `../code/mooring_solve.py` | 可复现求解器（rev2） |
 | `../code/make_figures.py` | 作图脚本 |
 
-## 预注册指标快照（Family A，主模型）
+## 预注册指标快照（Family A，主模型，Freeze F2）
 
-### Q1 / Q2 固定球重 1200 kg，链 II 22.05 m，水深 18 m
+### Q1 / Q2 固定球重 1200 kg，链 II 22.05 m（210 节），水深 18 m
 
 | v (m/s) | 吃水 d (m) | 游动半径 R (m) | 钢桶 θ (°) | 锚端 φ (°) | 钢管 θ1–4 (°) | 趴链 (m) |
 |--------:|----------:|---------------:|-----------:|-------------:|--------------|----------:|
@@ -22,14 +23,15 @@
 
 ### Q2 调球重（最小可行质量）
 
-- Family A：约 **2238 kg**（θ_barrel≈4.46°，φ≈16.00°，R≈18.53 m，d≈0.99 m）
-- Family B：约 **2221 kg**（对照，Δm≈17 kg）
+- Family A：**2238 kg**（θ_barrel≈4.46°，φ≈16.00°，R≈18.53 m，d≈0.99 m）
+- Family B：约 **2220 kg**（对照，Δm≈18 kg）
 
-### Q3 推荐设计（train 可行，hold-out 通过）
+### Q3 推荐设计（软裕度 + 均衡效用；hold-out / dense 通过）
 
-- **V 型锚链，L=22.05 m，重物球 5000 kg**
-- train 最劣：θ_barrel≈4.56°，φ≈9.03°；mean R≈17.46 m
-- hold-out：全部约束满足
+- **IV 型锚链，L=28.05 m（187 节），重物球 5000 kg**
+- train 最劣：θ_barrel≈4.48°，φ≈1.96°；max d≈1.83 m；mean R≈23.57 m
+- 稠密扫描 252 点：硬约束失败数 = 0
+- 备选：V/21.96 m/5000 kg（更短游动）；IV/30.00 m/4500 kg（更低吃水）
 
 ### 族间主指标差（24 m/s）
 
