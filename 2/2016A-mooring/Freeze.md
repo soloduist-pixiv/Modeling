@@ -3,7 +3,7 @@
 - freeze_id：`2016A-mooring-F2`
 - 日期：2026-08-05
 - 模型版本：Family A 离散多刚体静力 + **分段水平张力** + 趴链 + **整数链节**；设计壳 Family C 网格/Pareto；对照 Family B 悬链积分  
-  代码：`work/2016A-mooring/code/mooring_solve.py`
+  代码：`2/2016A-mooring/code/mooring_solve.py`
 - 数据版本：题面参数；海水 ρ=1025；g=9.8；钢密度 7850（球/链排水）；Q3 train/holdout/dense 见代码 `design_q3`
 - 参数：确定性求解；Q2 球重网格+二分；Q3 型号{II–V}×整数链长×球重；软裕度 θ≤4.5°、φ≤14°、d≤1.85 m
 - 预注册评价指标与数值（主模型 A）：

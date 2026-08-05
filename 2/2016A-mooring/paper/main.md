@@ -126,7 +126,7 @@ d+\sum L_i\cos\theta_i + y_{\mathrm{chain}}=H_{\mathrm{water}}.
 
 ## 五、结果（Freeze 数值）
 
-可复现脚本：`work/2016A-mooring/code/mooring_solve.py`；汇总：`results/metrics.json`。
+可复现脚本：`2/2016A-mooring/code/mooring_solve.py`；汇总：`results/metrics.json`。
 
 ### 5.1 问题 1（及 36 m/s 对照）
 
