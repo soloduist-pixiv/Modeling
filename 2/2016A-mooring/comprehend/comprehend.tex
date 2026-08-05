@@ -1,0 +1,949 @@
+% !TEX program = xelatex
+\documentclass[UTF8,a4paper,zihao=-4]{ctexart}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{setspace}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue!50!black
+}
+
+\setstretch{1.12}
+\setlength{\parskip}{0.3em}
+
+\title{\textbf{系泊系统的设计 —— 论文深度解析}}
+\author{
+  材料：\texttt{2/2016A-mooring/paper/paper.pdf}\\[0.3em]
+  2016\,高教社杯全国大学生数学建模竞赛 A 题\\[0.2em]
+  \small Freeze:~2016A-mooring-F3\quad
+  导读 skill：\texttt{math-paper-comprehend}
+}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\textbf{材料：} \texttt{2/2016A-mooring/paper/paper.pdf}（同源：\texttt{main.md} / \texttt{paper.tex}）  
+\textbf{题目：} 2016 高教社杯全国大学生数学建模竞赛 A 题  
+\textbf{Freeze：} \texttt{2016A-mooring-F3}
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\section{\texorpdfstring{通俗总览}{通俗总览}}
+
+这篇论文把近浅海观测浮标的「浮标--钢管--钢桶--重物球--锚链--锚」整条系泊线，建成可求静力平衡的力学机器，再在风--流--水深的不确定箱体上用最劣情景做鲁棒选型，并用一条与锚链/球重无关的吃水解析下界说明：要压住钢桶倾角，吃水就不可能太浅。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\section{\texorpdfstring{完整性清单}{完整性清单}}
+
+\subsection{\texorpdfstring{模型清单（共 10 个，将全部展开）}{模型清单（共 10 个，将全部展开）}}
+
+\begin{enumerate}[leftmargin=1.8em]
+\item 经验风载与水流载模型（§4.1）
+\item 刚性杆段力矩平衡与分段水平张力递推（§4.2）
+\item 重物球阻力与浮力模块（§4.1 补充项）
+\item Family A：离散多刚体锚链 + 趴链判据 + 吃水闭合求解（§4.3）
+\item Family B：连续重链积分对照（§4.4）
+\item 吃水解析下界命题（§4.6）
+\item Family C：最劣情景鲁棒设计（单调性角点归约 + 多目标搜索）（§4.7）
+\item 熵权法（§4.7 排序前半环）
+\item TOPSIS（§4.7 排序后半环）
+\item 机会约束可靠性设计（§4.7 / §5.3 S1$'$）
+\end{enumerate}
+
+\subsection{\texorpdfstring{检验/验证清单（共 12 个，将全部展开）}{检验/验证清单（共 12 个，将全部展开）}}
+
+\begin{enumerate}[leftmargin=1.8em]
+\item 独立守恒校核（水平/竖向力平衡与几何闭合残差）（§4.5、§六.1）
+\item 离散收敛性 + Richardson 外推（§六.2）
+\item 重物球阻力消融实验（§六.3）
+\item 重物球浮力消融实验（§六.4）
+\item 参数敏感性分析（海水密度、链条投影宽度）（§六.5）
+\item Family A / B 族对照（§五.1、§六.6）
+\item 环境变量逐轴单调性检验（§4.7）
+\item 最劣角点归约的 252 点稠密扫描复核（§六.7）
+\item 机会约束 Monte Carlo 满足率检验（§五.3、§六.8）
+\item 龙卷风图 / 单因素扰动不确定性排序（图 8b）
+\item 反事实检验：球重对游动半径（§六.9）
+\item TOPSIS 权重随机化稳健性（4000 组，图 6c）（§4.7、§五.3）
+\end{enumerate}
+
+\subsection{\texorpdfstring{收录说明}{收录说明}}
+
+\begin{itemize}[leftmargin=1.5em]
+\item 未单独成节但已并入某处说明的次要步骤：锚链投影宽度「体积等效 vs 链环几何」双口径互校（并入模型 1/3 与检验 5）；120 点网格括区 + 60 步二分求吃水、球重粗扫描 + 二分 + 10 kg 取整（并入模型 4、7 的 2.3）；整数链节可制造约束剔除（并入模型 4/7）；浮标竖直、铰接无摩擦等假设（见 §1.5 与各模型 2.3）。
+\item 材料缺失、无法确认是否存在的方法：正文未出现经典假设检验（t/ANOVA/卡方）、R²/AIC、交叉验证、AHP 的 CR 等【未见到】；波浪动力模型【未见到】（作者明确列为局限）。
+\end{itemize}
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\section{\texorpdfstring{一、问题分析}{一、问题分析}}
+
+\subsection{\texorpdfstring{1.1 背景与痛点}{1.1 背景与痛点}}
+
+近浅海观测网的传输节点靠浮标系泊固定。系统一旦被风、流拉得过斜或锚被拖行，水声设备效果变差甚至节点丢失。痛点在于：设计变量（锚链型号、长度、重物球质量）与环境（风速、流速、水深）耦合，且题面同时要求吃水、游动区域、钢桶倾角「尽可能小」，并给出锚端夹角 \(\varphi\le16^\circ\)、钢桶倾角 \(\theta\le5^\circ\) 两类硬/准硬约束------目标彼此冲突，不能只调一个旋钮。
+
+\subsection{\texorpdfstring{1.2 问题重述（数学语言）}{1.2 问题重述（数学语言）}}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{要素} & \textbf{内容} \\
+\hline
+\textbf{已知} & 浮标几何与质量、4 节钢管、密封钢桶、可选重物球、电焊锚链（I--V 型节长与线密度）、抗拖移锚；经验风/流力公式；水深与风、流工况（Q1/Q2 给定；Q3 为箱体） \\
+\hline
+\textbf{约束} & \(\varphi\le16^\circ\)（锚不被拖行）；\(\theta\le5^\circ\)（设备效果）；锚链长度为节长整数倍；浮力足以支撑系泊线净重（否则无平衡吃水） \\
+\hline
+\textbf{求解} & Q1：给定参数下的静力平衡态（倾角、链形、吃水、游动半径）；Q2：36 m/s 下使两约束可行的最小球重；Q3：风+流+变水深下的型号/整数链长/球重设计及多情景状态 \\
+\hline
+\end{tabularx}
+\end{center}
+\vspace{0.35em}
+
+核心目标（文中显式）：使吃水、游动区域、钢桶倾角尽可能小，并满足硬约束；Q3 在无概率分布时按最劣情景鲁棒处理。
+
+\subsection{\texorpdfstring{1.3 数据挑战与难点}{1.3 数据挑战与难点}}
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{非线性耦合：} 投影面积依赖姿态，姿态又依赖张力；\(H\) 沿线递增。
+\item \textbf{多目标冲突：} 小 \(\theta\) 要求大吃水（命题 4.6），与「干舷」对立。
+\item \textbf{离散--连续混合：} 型号与节数离散，球重与吃水连续。
+\item \textbf{环境箱体无分布：} 只能最劣情景或自设机会约束。
+\item \textbf{静水假设：} 忽略波浪，使干舷结论外推风险大。
+\item \textbf{小样本经验系数：} \(0.625\)、\(374\) 未实测标定，不确定性大。
+\end{itemize}
+
+\subsection{\texorpdfstring{1.4 整体建模思路鸟瞰}{1.4 整体建模思路鸟瞰}}
+
+\begin{quote}\small
+题面参数与经验荷载\\
+    $\rightarrow$ 模型1：风/流力 $\rightarrow$ H\textsubscript{0}(d)\\
+    $\rightarrow$ 模型2：钢管/钢桶力矩递推（分段 H）\\
+    $\rightarrow$ 模型3：球阻力/浮力接入链顶条件\\
+    $\rightarrow$ 模型4（Family A）：离散链 + 趴链 + 竖向闭合求 d\\
+    $\rightarrow$ 模型5（Family B）：连续链对照误差条\\
+    $\rightarrow$ 模型6：由 $\theta\le 5^\circ$ 推出 d\_min（与设计无关）\\
+    $\rightarrow$ 模型7（Family C）：单调性$\rightarrow$角点$\rightarrow$最轻可行球重$\rightarrow$Pareto\\
+    $\rightarrow$ 模型8+9：熵权 $\rightarrow$ TOPSIS 排序 $\rightarrow$ S1\\
+    $\rightarrow$ 模型10：机会约束 $\rightarrow$ S1$'$；另给干舷优先 S2\\
+    $\rightarrow$ 检验1--12：守恒、收敛、消融、灵敏度、族对照、扫描、MC、反事实、权重随机化\\
+    $\rightarrow$ 结论与选型建议\\
+\end{quote}
+
+\subsection{\texorpdfstring{1.5 变量与假设速览}{1.5 变量与假设速览}}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{输入} & \textbf{输出} & \textbf{核心约束} & \textbf{显式假设} & \textbf{隐含假设} \\
+\hline
+\(d,v_w,v_c,h\)；型号/\(N\)/\(m_b\) & \(\theta,\varphi,R,d\)；趴链长；方案排序 & \(\theta\le5^\circ,\varphi\le16^\circ\)；整数节；储备浮力 & 静水平衡；共面；刚性杆铰接；经验荷载；均匀流；球为集中质量/阻力 & 趴链段阻力/摩擦可忽略；浮标倾覆由配重平衡；风流同向为最劣取向 \\
+\hline
+\end{tabularx}
+\end{center}
+\vspace{0.35em}
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\section{\texorpdfstring{二、模型全解析}{二、模型全解析}}
+
+\subsection{\texorpdfstring{模型 1：经验风载与水流载模型（§4.1）}{模型 1：经验风载与水流载模型（§4.1）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 求解管道第 1 环：把环境速度变成水平力，启动整条张力递推。
+\item 上游 $\leftarrow$ 题面经验公式与构件几何/姿态；下游 $\rightarrow$ 模型 2 的 \(H_0\)、各段 \(F_{c,i}\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念（通俗 + 严谨）}{2.2 核心概念（通俗 + 严谨）}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 风吹浮标出水部分、水流冲浸没部分，力大致与速度平方、迎流面积成正比。
+\item \textbf{类比：} 像撑伞------风越大、伞面越大，手里越沉；浮标吃水深了，出水「伞面」变小，但水下被冲的面积变大。
+\item \textbf{关键公式：}
+\end{itemize}
+  \[
+  F_w=0.625\cdot 2(2-d)\cdot v_w^2,\qquad
+  F_{c,\mathrm{buoy}}=374\cdot 2d\cdot v_c^2,
+  \]
+  \[
+  H_0(d)=F_w+F_{c,\mathrm{buoy}}.
+  \]
+  倾角为 \(\theta\) 的圆柱：\(S=2rL|\cos\theta|+\pi r^2|\sin\theta|\)，\(F_c=374\,S\,v_c^2\)。
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{符号：} \(d\) 吃水 (m)；\(2(2-d)\) 浮标出水迎风面积；\(2d\) 浸没侧向投影；\(0.625,374\) 题面系数；\(S\) 姿态修正迎流面积。
+\item \textbf{选型动机：} 不用 CFD/实测标定，因竞赛只给经验式；改进风险是系数不确定（后文机会约束与龙卷风图专门对付这一点）。文中指出在 \((36,1.5)\) 处 \(\mathrm{d}H_0/\mathrm{d}d\approx +63\,\mathrm{N/m}\)，\(H_0\) 几乎与吃水无关------加重球压吃水的收益主要来自竖向浮力分母，而非水平力减小。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{假设：} 经验公式在题面海况可用；投影按瞬时姿态；均匀流速剖面。
+\item \textbf{步骤：} 由 \(d,v_w,v_c\) 算浮标 \(H_0\)；对各杆/链节用姿态算 \(S\to F_c\)。
+\item \textbf{黑盒：} Input\((d,v_w,v_c,\{\theta_i\},\)几何\()\) $\rightarrow$ Process（平方律+投影）$\rightarrow$ Output\((H_0,\{F_{c,i}\})\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效（机理）}{2.4 如何起效（机理）}}
+\begin{enumerate}[leftmargin=1.8em]
+\item 速度平方进入水平力；2. 力进入力矩平衡决定倾角；3. 倾角再改投影形成定点迭代；4. 在峰值工况 \(H_0\) 对 \(d\) 不敏感，使下界命题更紧。  
+\end{enumerate}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{担保：} 无定理担保，属经验拟合。抓住了「水平荷载驱动倾角」这一本质。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.5 优点（绑定本文）}{2.5 优点（绑定本文）}}
+\begin{itemize}[leftmargin=1.5em]
+\item 与题面一致、可复现；姿态修正比「一律用静立面积」更物理。  
+\item 对照：若忽略姿态，倾斜杆迎流面积偏差会系统性偏置 \(\theta\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+\begin{itemize}[leftmargin=1.5em]
+\item 系数未标定；均匀流忽略剖面；无波浪附加力。本文用灵敏度与机会约束部分处理系数不确定，波浪则避而不谈（局限章承认）。
+\end{itemize}
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 2：刚性杆段力矩平衡与分段水平张力递推（§4.2）}{模型 2：刚性杆段力矩平衡与分段水平张力递推（§4.2）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 管道第 2 环：钢管与钢桶的局部静力/力矩，得到各段倾角并向下传递 \(H,V\)。
+\item 上游 $\leftarrow$ 模型 1 的 \(H_0,F_c\) 与浮标净浮力 \(V_0\)；下游 $\rightarrow$ 链顶条件（接模型 3、4）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 每根杆像一根被上下拉、中间被水横推的棍子，对下端取矩决定倾斜角。
+\item \textbf{类比：} 双手拎一根斜放的晾衣杆，中间再被人横着推一把------倾角由「横推」与「上下拉力差」的比值决定。
+\item \textbf{关键公式（文中 boxed）：}
+\end{itemize}
+  \[
+  \tan\theta=\frac{H_u+F_c/2}{V_u-G/2},\qquad V_\ell=V_u-G,\qquad H_\ell=H_u+F_c.
+  \]
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{符号：} \(\theta\) 与竖直线夹角；\(H_u,V_u\) 顶端水平/竖向张力；\(G\) 水中净重；\(F_c\) 分布流力（合力取杆中点）；下标 \(\ell\) 为下端。
+\item \textbf{选型动机：} 相对「全线共用同一 \(H\)」，分段递推避免高估上部倾角并扭曲 Q3 排序；\(v_c=0\) 时退化为恒 \(H\) 的经典铰接杆链。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{假设：} 刚性、铰接无摩擦、流力合力在中点、准静态。
+\item \textbf{因 \(F_c(\theta)\)：} 对 \(\theta\) 定点迭代，收敛判据 \(10^{-12}\)，通常 3--5 步。
+\item \textbf{传递顺序：} 浮标底铰 \(V_0=\rho g\pi R^2 d-m_{\mathrm{buoy}}g\) $\rightarrow$ 四节钢管 $\rightarrow$ 钢桶 $\rightarrow$ 链顶。
+\item \textbf{黑盒：} Input\((H_u,V_u,G,F_c\) 初值\()\) $\rightarrow$ Process（取矩+迭代）$\rightarrow$ Output\((\theta,H_\ell,V_\ell)\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+\begin{enumerate}[leftmargin=1.8em]
+\item 水平力越大、有效竖向拉力越小 $\rightarrow$ \(\tan\theta\) 越大；2. \(H\) 每段累加流力，下部杆「更横」；3. 钢桶 \(\theta\) 成为设备工作指标。  
+\end{enumerate}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{担保：} 刚体静力学在假设下精确；迭代靠压缩映射经验收敛。抓住「竖向储备浮力对抗水平荷载」的杠杆本质。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+\begin{itemize}[leftmargin=1.5em]
+\item 可解释、可递推、与离散链同一公式族。对照整体恒 \(H\) 模型：后者在有流时高估上部倾角。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+\begin{itemize}[leftmargin=1.5em]
+\item 忽略杆的弯曲与动态；中点合力是分布力近似；浮标假定竖直。波浪下力矩包络会显著放大（作者承认偏危险侧）。
+\end{itemize}
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 3：重物球阻力与浮力模块（§4.1 补充）}{模型 3：重物球阻力与浮力模块（§4.1 补充）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 接在钢桶与锚链之间：修正链顶 \(H,V\)，并改变系统净重（从而改变吃水）。
+\item 上游 $\leftarrow$ 球质量 \(m_b\)；下游 $\rightarrow$ 模型 4 链顶条件；\textbf{不直接进入钢桶力矩的 \(H_u\)}（这是下界命题成立的关键接口）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 大钢球既「往下坠」（净重），也被水「横着推」（阻力）。
+\item \textbf{类比：} 像在风筝线上挂了一个铅坠------铅坠加重让线更陡，但铅坠自己挡风又给下半段多加一截水平拉力。
+\item \textbf{公式：}
+\end{itemize}
+  \[
+  r_b=\Bigl(\frac{3m_b}{4\pi\rho_s}\Bigr)^{1/3},\quad
+  F_{c,\mathrm{ball}}=374\pi r_b^2 v_c^2,
+  \]
+  \[
+  V_{\mathrm{chain}}=V_\ell-G_{\mathrm{ball}},\qquad
+  H_{\mathrm{chain}}=H_\ell+F_{c,\mathrm{ball}}.
+  \]
+  4270 kg 时 \(r_b=0.507\) m、\(F_{c,\mathrm{ball}}=678\) N（与整条锚链分布阻力 768 N 同量级）。
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{选型动机：} 许多答卷只计球重不计球阻；本文补上并消融验证 \(\varphi\) 差 2.35$^\circ$。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item 钢密度估排水体积 $\rightarrow$ 净重 \(G_{\mathrm{ball}}\)；球视为集中质量与集中阻力。
+\item \textbf{黑盒：} Input\((m_b,v_c)\) $\rightarrow$ Process（几何$\rightarrow$浮力/阻力）$\rightarrow$ Output\((G_{\mathrm{ball}},F_{c,\mathrm{ball}})\) 并入链顶。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+\begin{enumerate}[leftmargin=1.8em]
+\item 球重 $\uparrow$ $\rightarrow$ 需要更大吃水提供浮力 $\rightarrow$ \(V\) 结构变化 $\rightarrow$ \(\theta,\varphi\) $\downarrow$；2. 球阻只加在链段 \(H\) $\rightarrow$ 主要抬高 \(\varphi\)，几乎不动钢桶 \(\theta\)。抓住「球在钢桶下方」的拓扑事实。
+\end{enumerate}
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+\begin{itemize}[leftmargin=1.5em]
+\item 量级上不可忽略；与消融实验一致。对照「只加集中重量」模型：会系统低估锚端夹角风险。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+\begin{itemize}[leftmargin=1.5em]
+\item 实心球、集中力点理想化；4270 kg 球径约 1.01 m，局部安装与受力超出模型（作者已写缺点）。
+\end{itemize}
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 4：Family A------离散多刚体锚链 + 趴链 + 吃水闭合（§4.3，主模型）}{模型 4：Family A------离散多刚体锚链 + 趴链 + 吃水闭合（§4.3，主模型）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 正演主引擎：回答 Q1/Q2 状态，并为 Q3 提供约束评估器。
+\item 上游 $\leftarrow$ 模型 2--3 的链顶 \(H,V\)；下游 $\rightarrow$ 指标 \(\varphi,R,d,\)趴链；外包给模型 7。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 把锚链拆成一节节小刚体，用与钢管相同的力矩公式串起来；若竖向拉力拎不起整链，多出来的部分就「趴」在海底。
+\item \textbf{类比：} 像一串回形针垂在桌上------力气够就整串悬空，不够就有一段摊在桌面上，悬空段末端切线贴桌（\(\varphi=0\)）。
+\item \textbf{趴链：} 单位长净重 \(w\)。若 \(V_{\mathrm{chain}}<wL\)，则
+\end{itemize}
+  \[
+  L_s=V_{\mathrm{chain}}/w,\qquad \varphi=0,
+  \]
+  余长 \(L-L_s\) 平铺；否则全悬空，\(\varphi=\arctan(V_{\mathrm{end}}/H_{\mathrm{end}})\)。
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{几何闭合：}
+\end{itemize}
+  \[
+  d+\sum_i L_i\cos\theta_i+y_{\mathrm{chain}}(d)=H_{\mathrm{water}}.
+  \]
+  未知量只有吃水 \(d\)。
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{整数链节：} \(N=\mathrm{round}(L/\ell)\)，\(L=N\ell\)；不可制造组合剔除（如 V 型 22.05 m $\rightarrow$ 122.5 节）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{假设：} 见 §1.5；趴链段流阻与海床摩擦忽略（张力由海床反力承担）。
+\item \textbf{求解：} 120 点网格括区 + 60 步二分求 \(d\)；闭合残差 \(<10^{-13}\) m。
+\item \textbf{黑盒：} Input（环境+设计+几何）$\rightarrow$ Process（荷载$\rightarrow$杆递推$\rightarrow$链递推$\rightarrow$趴链$\rightarrow$闭合二分）$\rightarrow$ Output\((d,R,\theta,\varphi,\)链形\()\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+\begin{enumerate}[leftmargin=1.8em]
+\item \(d\) 试探 $\rightarrow$ 浮力与 \(H_0\) 确定；2. 杆--球--链递推得形状；3. 竖向是否「装得下」决定残差符号；4. 二分收敛到平衡。趴链耗尽后 \(\varphi\) 从 0 迅速抬起，解释 24$\rightarrow$36 m/s 的跳跃。  
+\end{enumerate}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{担保：} 静力平衡 + 一维连续残差的根；主要靠物理闭合而非统计拟合。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+\begin{itemize}[leftmargin=1.5em]
+\item 与可制造节数一致；有流时 \(H\) 递增比经典无流悬链更贴题。对照连续模型 B：误差远小于预注册阈值，故作主报。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+\begin{itemize}[leftmargin=1.5em]
+\item 离散偏差约 0.1$^\circ$（见检验 2）；静水/平面；趴链摩擦忽略可能略改变触地点附近张力分配。
+\end{itemize}
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 5：Family B------连续重链积分对照（§4.4）}{模型 5：Family B------连续重链积分对照（§4.4）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 对照通道，给离散误差条；\textbf{不作主报}。
+\item 上游 $\leftarrow$ 同链顶条件；下游 $\rightarrow$ 与 A 的 \(\theta,R,\varphi,\) Q2 球重对比。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 把链看成连续「重绳子」，沿弧长按局部 \(\alpha=\arctan(V/H)\) 积分形状。
+\item \textbf{类比：} 公园里的悬链线，但允许水平张力沿程因流力增加（有流版）。
+\item \textbf{机制：} 局部倾角积分；趴链判据同 A。标准无流悬链是 \(H\) 常数的特例；本文 Diff = 允许 \(H(s)\) 增长。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item 刚性杆段仍用模型 2；仅链条连续化。
+\item \textbf{黑盒：} Input（同 A）$\rightarrow$ Process（ODE/积分链形）$\rightarrow$ Output（同指标）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+连续极限应逼近细分后的离散链；若 A、B 接近，则「一节一节切」不是主误差源。无额外统计担保，靠力学等价。
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+独立实现、交叉验证成本低。对照：单独用 B 作主模型会弱化整数节可制造约束的表达。
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+仍静力平面；不替代 A 的工艺约束；论文用其证明「不必升级主模型」，而非提供新设计自由度。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 6：吃水解析下界命题（§4.6）}{模型 6：吃水解析下界命题（§4.6）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 理论核心：把「\(\theta\) 与 \(d\) 的冲突」写成与锚链/球重无关的闭式关系。
+\item 上游 $\leftarrow$ 模型 1--2 在钢桶处的力矩结构；下游 $\rightarrow$ 解释 Q3 吃水为何贴着 1.64 m+，支撑 S1「距下界 4.3 cm」叙事。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 钢桶顶的竖向拉力只由浮标吃水（减钢管净重）决定；球和链都在钢桶下面，加重它们只能逼浮标沉得更深，不能在「同一吃水」下凭空增大钢桶顶的 \(V\)。
+\item \textbf{类比：} 天花板挂钩的拉力只取决于挂钩以上挂了什么；你在地板上再堆沙袋，除非把整栋楼压矮（这里=吃水加深），否则改变不了天花板那一点的受力表达式。
+\item \textbf{命题：} 任何 \(\theta\le\theta^*\) 的方案必有 \(d\ge d_{\min}(v_w,v_c;\theta^*)\)，其中 \(d_{\min}\) 是
+\end{itemize}
+  \[
+  \tan\theta^*\cdot\Bigl(\rho g\pi R^2d-m_{\mathrm{buoy}}g-4G_{\mathrm{pipe}}-\tfrac12 G_{\mathrm{bar}}\Bigr)
+  =H_0(d)+\sum_{i=1}^{4}F_{c,\mathrm{pipe},i}+\tfrac12F_{c,\mathrm{bar}}
+  \]
+  的根；\textbf{不依赖}锚链型号、长度、球重。
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{代表值：} \((36,1.5)\) 时 \(d_{\min}=1.643\) m（干舷仅 0.357 m）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item 证明要点：\(V_{\mathrm{top}}=V_0-4G_{\mathrm{pipe}}\)；球/链重量已通过更大的 \(d\) 进入 \(V_0\)；差函数因左端斜率远大于右端对 \(d\) 的导数而严格单调，根唯一，\(\theta(d)\) 单调降。
+\item \textbf{黑盒：} Input\((v_w,v_c,\theta^*)\) $\rightarrow$ Process（解一维非线性方程）$\rightarrow$ Output\((d_{\min})\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+把多目标里「小倾角 + 小吃水」证成不可同时极端优化；数值搜索的「吃水偏大」从可疑结果变成物理必然。担保来自静力恒等式 + 单调性，不是拟合。
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+\begin{itemize}[leftmargin=1.5em]
+\item 可先验判断设计空间天花板；图 5 右图与完整求解器在不同球重下重合。对照纯数值优化：无下界时无法知道「还能再浅多少」。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+依赖「球在钢桶下」拓扑与分段力矩近似；忽略波浪后，真实可用干舷可能更紧；右端对 \(d\) 的弱依赖是题面参数范围内的定量事实，换公式系数需重证「根唯一」。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 7：Family C------最劣情景鲁棒设计（§4.7）}{模型 7：Family C------最劣情景鲁棒设计（§4.7）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item Q2/Q3 的设计壳：在环境箱体上保证约束，并在多目标下选方案。
+\item 上游 $\leftarrow$ 模型 4 正演器 + 模型 6 洞察；下游 $\rightarrow$ 可行集/Pareto $\rightarrow$ 模型 8--9 排序，或模型 10 加可靠度。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 不知道恶劣海况的概率分布时，就按「每个指标各自最难受的角点」来验收设计。
+\item \textbf{类比：} 选冬衣时不知道冬天多冷，就按「最冷那天早上」来试穿，而不是按「平均气温」。
+\item \textbf{归约：} 逐轴单调性 $\Rightarrow$ 最劣在角点：\(\theta\) 最劣 \((16,36,1.5)\)，\(\varphi\) 最劣 \((20,36,1.5)\)，另控吃水与无流链形共 4 点。
+\item \textbf{设计问题：}
+\end{itemize}
+  \[
+  \min_{(\text{型号},N,m_b)}\ \bigl(\max_k d_k,\ \max_k R_k,\ \max_k\theta_k,\ \max_k\varphi_k,\ m_b\bigr)
+  \]
+  s.t. \(\max_k\theta_k\le5^\circ,\ \max_k\varphi_k\le16^\circ\)。
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{球重归约：} 固定（型号，节数）后，最轻可行球重代表整条有效前沿（更重只加深吃水）；可行集是区间而非上集（太重会无解）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item 枚举 5 型号 $\times$ 约 16--32 m 整数节数；对每个组合粗扫描括出球重可行下沿再二分，取整到 10 kg。
+\item 得 29 个硬约束可行组合，五目标 Pareto 24 个。
+\item \textbf{黑盒：} Input（设计空间+4 角点）$\rightarrow$ Process（正演$\rightarrow$约束过滤$\rightarrow$Pareto）$\rightarrow$ Output（前沿方案集）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+单调性把三维连续包络压成有限校核；「最轻可行球」把三维设计压成离散二维枚举。担保：在「指标对每个环境变量单调」成立时，角点最劣充要；该前提由检验 7--8 支撑。
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+避免人为情景列表；与解析下界联立可判断逼近程度（S1 吃水 1.686 vs 1.643）。对照随机抽样海况：无分布时随机并不更「客观」。
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+最劣情景可能过度保守；\(\theta\) 与 \(\varphi\) 最劣点不在同一角，必须多点联立；节数步长约 1 m，前沿未密到 1 节（作者称量级不变）。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 8：熵权法（§4.7 排序前半环）}{模型 8：熵权法（§4.7 排序前半环）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 为 Pareto 前沿上的五指标客观赋权，避免拍脑袋权重。
+\item 上游 $\leftarrow$ 24 个前沿点的指标矩阵；下游 $\rightarrow$ 模型 9 的加权规范化矩阵。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 哪个指标在候选方案之间「拉开得越开」，就认为它越有区分信息，权重越大。
+\item \textbf{类比：} 班里大家数学都 95--98，语文 60--90，评「综合优秀」时语文分差更能分人------熵权就是自动化版的这个直觉。
+\item \textbf{流程：} 归一化 $\rightarrow$ 比重 \(p_{ij}\) $\rightarrow$ 熵 \(e_j\) $\rightarrow$ 差异系数 \(1-e_j\) $\rightarrow$ 权重 \(w_j\)。
+\item \textbf{本文权重：} 最劣游动半径 0.270、最劣锚端角 0.271、球重 0.222、最大吃水 0.142、最劣桶倾角 0.095。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item 仅在可行 Pareto 集上算熵权（样本=前沿点）。
+\item \textbf{黑盒：} Input（前沿指标表）$\rightarrow$ Process（熵权）$\rightarrow$ Output\((w_j)\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+吃水被下界锁死、前沿上几乎不变 $\rightarrow$ 熵大、权重被压到 0.142；游动半径与 \(\varphi\) 差异大 $\rightarrow$ 高权。于是排序真正在「游动区 vs 抗拖移 vs 球重」上抉择------与模型 6 的洞察一致。
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+少主观；与「吃水几乎与设计无关」的物理图像合拍。对照 AHP：此处无专家两两比较数据，熵权更匹配。
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+变异$\ne$决策重要性；若人为认为「干舷」极关键但前沿上吃水方差小，熵权会系统性压低它------这也是作者另给 S2（干舷优先）的原因。权重依赖当前前沿集合。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 9：TOPSIS（§4.7 排序后半环）}{模型 9：TOPSIS（§4.7 排序后半环）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 在加权指标空间里对 Pareto 点几何排序，产生名义最优 S1。
+\item 上游 $\leftarrow$ 模型 8 权重 + 前沿指标；下游 $\rightarrow$ S1 推荐及备选叙事。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 构造「样样最好」与「样样最差」两个虚拟点，离好的近、离差的远则优。
+\item \textbf{类比：} 选手机时把理想机型与最烂机型放在表格两端，看谁相对更靠近理想端。
+\item \textbf{流程：} 标准化 $\rightarrow$ 乘权重 $\rightarrow$ 正/负理想解 $\rightarrow$ 相对贴近度。
+\item \textbf{结果：} S1 = V 型 / 26.82 m（149 节）/ 4270 kg；备选含「最小游动区」「最小吃水」取向（表 3）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item 五目标：\(\max d,\max R,\max\theta,\max\varphi,m_b\)（皆越小越好的方向处理）。
+\item \textbf{黑盒：} Input（前沿+\(w\)）$\rightarrow$ Process（TOPSIS）$\rightarrow$ Output（排序/S1）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+把向量指标压成标量名次，便于交付「推荐方案」；但标量化必然丢失权衡信息，故配合检验 12 与表 3 备选。
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+直观、与熵权接口清晰。对照只报某一单目标最优：TOPSIS 综合更符合题面「尽可能小」的多重要求。
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+理想点随样本集变；相关指标会重复计分；夺魁率仅 17.3\%（检验 12）说明名次不具压倒性------作者未假装唯一最优，这是优点，也暴露方法边界。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{模型 10：机会约束可靠性设计（§4.7 / §5.3 S1$'$）}{模型 10：机会约束可靠性设计（§4.7 / §5.3 S1$'$）}}
+
+\subsubsection{\texorpdfstring{2.1 模型定位与用途}{2.1 模型定位与用途}}
+\begin{itemize}[leftmargin=1.5em]
+\item 在经验系数不确定下，把「约束以高概率成立」写成可计算的球重加严。
+\item 上游 $\leftarrow$ S1 结构（同型号同链长）；下游 $\rightarrow$ S1$'$（4930 kg）与满足率曲线。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.2 核心概念}{2.2 核心概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{通俗总览：} 名义解贴在 5$^\circ$ 边界上，参数一抖就违规；于是要求在随机扰动下，最劣角点约束满足率 $\ge$95\%，再找最轻球重。
+\item \textbf{类比：} 考试及格线 60 分，你考 60.1，一改卷就可能挂------机会约束逼你留出分数裕度。
+\item \textbf{扰动：} \(\rho\in[1020,1030]\)；链条投影宽度 $\times$0.8--1.3；风/流载系数各 $\times$0.90--1.15。
+\item \textbf{结果：} S1 满足率约 32.5\%（80 组；独立 300 组复核 40.0\%）；球重 4930 kg $\rightarrow$ 98.8\%；吃水升至 1.864 m。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.3 构建与求解思路}{2.3 构建与求解思路}}
+\begin{itemize}[leftmargin=1.5em]
+\item 联合抽样 $\rightarrow$ 重跑正演 $\rightarrow$ 统计角点约束满足率 $\rightarrow$ 对球重搜索使满足率达阈值。
+\item \textbf{黑盒：} Input（设计+扰动分布+阈值）$\rightarrow$ Process（MC+搜索）$\rightarrow$ Output\((m_b^{\mathrm{rel}},\)满足率曲线\()\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{2.4 如何起效}{2.4 如何起效}}
+把「系数不确定」从口头局限变成可比较的公斤数与干舷代价。球重 >约 5.2 t 后满足率崩塌（储备浮力耗尽）------揭示可行可靠域有上界。无概率论渐近担保，属工程 MC。
+
+\subsubsection{\texorpdfstring{2.5 优点}{2.5 优点}}
+相对纯最劣确定性设计，能回答「贴边解有多脆」。对照把所有系数取最不利组合的鲁棒优化：机会约束允许 5\% 违约，对保守性更可调。
+
+\subsubsection{\texorpdfstring{2.6 局限}{2.6 局限}}
+扰动区间是假设不是实测；满足率抽样有误差（32.5\% vs 40\%）；加重球换可靠度却进一步牺牲干舷，与波浪缺口叠加时风险更大。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\section{\texorpdfstring{三、参数检验与统计方法全解析}{三、参数检验与统计方法全解析}}
+
+\subsection{\texorpdfstring{检验 1：独立守恒校核（§4.5、§六.1）}{检验 1：独立守恒校核（§4.5、§六.1）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 数值解是否真的力平衡、几何闭合，还是优化器「假收敛」？
+\item \textbf{对照基准：} 水平------锚端张力 = 浮标荷载 + 全部沿线阻力；竖直------浮标净浮力 = 系泊线承担的全部净重（趴链段由海床承担）；几何残差 $\rightarrow$ 0。
+\item \textbf{度量：} 相对残差（非假设检验 p 值）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+事后校核，\textbf{不参与求解}；若残差大则否定该状态。用于全部报告状态。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+静力学恒等式提供真值；残差衡量离散/迭代误差。  
+\textbf{本文操作：} 全部报告状态水平/竖向相对残差与几何闭合残差 \(<10^{-9}\)（多数为机器 0）。  
+\textbf{「通过」意味着：} 在模型方程意义上自洽；\textbf{不意味着：} 模型物理假设（无浪等）正确。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+挡住「程序 bug 出漂亮表」类错误；与求解器解耦。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+只验内一致性，不验外推效度；残差小不能证明经验系数对。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 2：离散收敛性 + Richardson 外推（§六.2）}{检验 2：离散收敛性 + Richardson 外推（§六.2）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 210 节离散是否够细？离散误差相对 16$^\circ$ 判据有多大？
+\item \textbf{对照：} 1$\times$/2$\times$/4$\times$/8$\times$ 细分（210$\rightarrow$1680）；外推连续极限。
+\item \textbf{统计量：} \(\varphi\) 序列；观测阶 \(p\)；Richardson 外推值。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+加密网格看指标是否趋于稳定；用收敛阶估计基线偏差。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+若一阶收敛，可用外推估极限。  
+\textbf{本文：} \(\varphi=15.996^\circ\to15.945\to15.920\to15.907\)，\(p=1.00\)，外推 \(15.895^\circ\)，基线偏差 \textbf{0.101$^\circ$}（占 16$^\circ$ 的 0.6\%）；\(\theta,d,R\) 变化 \(<10^{-5}\)。折算 Q2 球重约 15 kg 量级。  
+\textbf{意味着：} 离散不是主误差；\textbf{不意味着：} 2238 kg 有四位物理精度（作者改为「2.24 t 量级」）。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+给离散主模型发「精度合格证」，并修正有效数字叙事。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+Richardson 假设光滑渐近；只验 Q2 工况代表性；不覆盖模型结构误差。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 3：重物球阻力消融（§六.3）}{检验 3：重物球阻力消融（§六.3）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 计入球自身水流阻力是否改变结论？
+\item \textbf{对照：} 同一工况下开/关 \(F_{c,\mathrm{ball}}\)。
+\item \textbf{H\textsubscript{0} 非正式表述：} 「球阻可忽略」；拒绝则该项应保留。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+消融 = 结构假设扰动，不是参数微扰。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} 最劣情景（IV 型 22.05 m、4000 kg、36 m/s、1.5 m/s、20 m）关球阻：\(\varphi\) 21.72$^\circ$$\rightarrow$19.37$^\circ$（\(\Delta=2.35^\circ\)），\(\theta\) 5.21$^\circ$$\rightarrow$5.27$^\circ$（几乎不动）。  
+\textbf{意味着：} 球阻对锚端角不可忽略，且只进链段------支持模型 3 与命题 6 的接口叙述；\textbf{不意味着：} 2.35$^\circ$ 是所有设计点的普适增量。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+直接验证「新增项」不是装饰。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+单点工况；关断是极端对照，不是连续灵敏度。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 4：重物球浮力消融（§六.4）}{检验 4：重物球浮力消融（§六.4）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 球的排水浮力（净重修正）能否删？
+\item \textbf{对照：} 忽略球排水体积 vs 计入。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+同样是模块级消融。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} 24 m/s 下忽略球排水：\(\theta\) 4.57$^\circ$$\rightarrow$3.85$^\circ$（\(\Delta=0.72^\circ\)）并出现趴链。  
+\textbf{意味着：} 净重模块不可删，否则偏乐观；\textbf{不意味着：} 0.72$^\circ$ 可线性外推到 36 m/s。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+防止「用空气中重量当水中重量」的常见简化。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+单风速点；与阻力消融分开报，未给联合关断。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 5：参数敏感性（\(\rho\)、投影宽度）（§六.5）}{检验 5：参数敏感性（、投影宽度）（§六.5）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 结论是否绑死在海水密度与链条迎流宽度的精确取值上？
+\item \textbf{对照基准：} 预注册有意义差------倾角 0.5$^\circ$、半径 0.1 m、吃水 0.05 m；此处看 \(\varphi\) 变化。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+在合理物理范围内扰动，若变化 $\ll$ 判据/阈值，则参数非关键脆弱点。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} \(\rho\in\{1020,1025,1030\}\) $\rightarrow$ \(\varphi\) 变 0.24$^\circ$；投影宽度 ±30\% $\rightarrow$ \(\varphi\) 变 0.03$^\circ$。均小于预注册倾角阈值尺度，且远小于 16$^\circ$ 判据。  
+\textbf{意味着：} 这两项精确取值不主导结论；\textbf{不意味着：} 所有参数都不敏感（流载系数才是大头，见检验 10）。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+支撑「投影宽度按已知处理而非拟合」；与双口径 5\%--12\% 互校一致。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+只报了 \(\varphi\) 主变化；局部灵敏度，未覆盖结构假设。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 6：Family A / B 族对照（§五.1、§六.6）}{检验 6：Family A / B 族对照（§五.1、§六.6）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 换连续链机制，主结论是否变？
+\item \textbf{对照：} 同一荷载与杆模型下 A vs B。
+\item \textbf{阈值：} 预注册 \(\varphi\) 差 1$^\circ$ 量级；实际差 \(\le0.19^\circ\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+跨机制族交叉验证：一致则离散化非主误差，不升级主模型。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} \(\theta,R\) 一致到报告精度；\(\varphi\) 最大差 0.19$^\circ$；Q2 最小球重 2238 vs 2220 kg（\(\Delta=18\) kg，0.8\%）。  
+\textbf{意味着：} 支持以 A 为主报；\textbf{不意味着：} 相对于真实海洋的误差只有 0.19$^\circ$。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+独立实现降低「同一 bug 两边犯」的风险（仍共享荷载假设）。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+两族共享静水/经验力/平面假设，属条件对照而非外样本验证。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 7：环境变量逐轴单调性检验（§4.7）}{检验 7：环境变量逐轴单调性检验（§4.7）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 指标对 \(h,v_w,v_c\) 是否逐轴单调，从而最劣必在角点？
+\item \textbf{对照：} 数值单调性表（非经典 p 值检验）。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+若单调，连续箱体 \(\max\) 可归约到顶点；否则角点法失效。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文表：} 水深$\uparrow$ $\rightarrow$ \(\theta\)$\downarrow$、\(\varphi\)$\uparrow$、吃水$\uparrow$、\(R\)$\downarrow$；风速/流速$\uparrow$ $\rightarrow$ 四指标均$\uparrow$（吃水、角、半径）。  
+\textbf{意味着：} 支持 4 角点归约的前提；\textbf{不意味着：} 联合方向（同时变两变量）无非单调「鞍」------故需检验 8 稠密扫描兜底。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+把鲁棒设计从「拍情景」变成可审计归约。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+「逐轴」检验不等于全域梯度无异常；依赖所采样条上的数值观察【论文未给全面检验网格细节以外的统计量】。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 8：252 点稠密扫描复核角点归约（§六.7）}{检验 8：252 点稠密扫描复核角点归约（§六.7）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 角点归约给出的最劣值是否等于包络上真最劣？
+\item \textbf{对照：} 4 角点 vs 252 点网格上的 \(\max\)。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+独立稠密扫描；若最劣值一致且硬约束失败数为 0，则归约可信。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文（S1）：} 最劣 \(\theta=4.99^\circ\)、\(\varphi=0.40^\circ\)、最大吃水 1.686 m，与角点一致；硬约束失败 \textbf{0} 次。  
+\textbf{意味着：} 在该网格分辨率下归约正确；\textbf{不意味着：} 网格之间不可能有更差点（连续上通常单调则无，但网格是离散证据）。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+给 Family C 的核心简化提供独立证据。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+252 点仍是采样；只详细汇报了 S1；计算预算下的「稠密」非证明。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 9：机会约束 Monte Carlo 满足率（§五.3、§六.8）}{检验 9：机会约束 Monte Carlo 满足率（§五.3、§六.8）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 名义 S1 在系数扰动下还有多「安全」？加到多少球重才 $\ge$95\%？
+\item \textbf{对照基准：} 满足率阈值 95\%（文中实际报到 98.8\%）；扰动分布见模型 10。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+参数空间抽样 $\rightarrow$ 重求解 $\rightarrow$ 估计 \(\widehat{p}(\text{可行})\)。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} S1：80 组公共随机数 \textbf{32.5\%}，300 组独立复核 \textbf{40.0\%}（差异=抽样误差）；4930 kg $\rightarrow$ \textbf{98.8\%}。  
+\textbf{意味着：} 贴边名义解脆弱，可靠版需约 +660 kg；\textbf{不意味着：} 真实海洋中有 98.8\% 的概率安全（扰动律是人为的）。无 p 值；不要解读成假设检验的「拒绝」。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+把稳健性定量化；暴露满足率随球重非单调（过重崩塌）。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+样本不大；区间与独立假设可议；与波浪不确定性未耦合。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 10：龙卷风图 / 单因素不确定性排序（图 8b）}{检验 10：龙卷风图 / 单因素不确定性排序（图 8b）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 哪个不确定源最能动摇最劣 \(\theta\)？
+\item \textbf{对照：} 各参数在其扰动范围内的 \(\theta\) 响应幅度。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+一次一个因素扫边界，按效应排序（龙卷风图）。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} 水流力系数使最劣 \(\theta\) 在 4.46$^\circ$--5.43$^\circ$ 变动（主导）；风载系数次之；\(\rho\) 约 0.24$^\circ$；投影宽度约 0.03$^\circ$。  
+\textbf{意味着：} 标定/收紧流载系数优先于纠结链宽；\textbf{不意味着：} 已识别所有结构误差源（如波浪）。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+给改进方向（文 §八.2）提供证据优先级。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+单因素忽略交互；范围主观；非常规「检验」但是不确定性分析。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 11：反事实检验------球重 vs 游动半径（§六.9）}{检验 11：反事实检验------球重 vs 游动半径（§六.9）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} 「加重球必然显著增大游动半径」是否成立？
+\item \textbf{H\textsubscript{0} 式直觉（待推翻）：} \(m_b\)$\uparrow$ $\Rightarrow$ \(R\) 显著$\uparrow$。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+在 Q2 工况扫描球重，观察 \(R(m_b)\) 是否支持该叙事。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} \(m_b\) 500$\rightarrow$5000 kg（10$\times$），吃水 0.539$\rightarrow$1.712 m（3.2$\times$），\(R\) 仅在 16.73--19.46 m（约 16\%）且非单调（先增后随趴链回落）。  
+\textbf{意味着：} 拒绝该反事实直觉；约束改善主要由 \(\theta,\varphi\) 承担；\textbf{不意味着：} 所有海况下 \(R\) 都对球重不敏感。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+防止错误设计叙事（以为减 \(R\) 就不能加重球）。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+单工况扫描；「反事实」是机制检查而非统计因果推断。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\subsection{\texorpdfstring{检验 12：TOPSIS 权重随机化稳健性（图 6c）}{检验 12：TOPSIS 权重随机化稳健性（图 6c）}}
+
+\subsubsection{\texorpdfstring{3.1 概念}{3.1 概念}}
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{要回答：} S1 的「第一名」是不是熵权巧合？
+\item \textbf{对照：} 单纯形上 4000 组随机权重下夺魁频率。
+\end{itemize}
+
+\subsubsection{\texorpdfstring{3.2 思路}{3.2 思路}}
+若某点在多数权重下仍第一，则排序稳健；否则只报告「在该权重下的名义最优」并给备选。
+
+\subsubsection{\texorpdfstring{3.3 如何起效}{3.3 如何起效}}
+\textbf{本文：} S1 夺魁率 \textbf{17.3\%}，进入前三 \textbf{29.7\%}。  
+\textbf{意味着：} 非压倒性优势，V 型方案彼此接近，必须并列备选；\textbf{不意味着：} S1「错误」------只说明标量化解不唯一稳。
+
+\subsubsection{\texorpdfstring{3.4 优点}{3.4 优点}}
+诚实回应「标量化是权重产物」的质疑；与表 3 备选形成闭环。
+
+\subsubsection{\texorpdfstring{3.5 局限}{3.5 局限}}
+随机权重未必反映工程偏好（如强行高权干舷）；频率$\ne$多准则效用。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\section{\texorpdfstring{四、全局评价与洞察}{四、全局评价与洞察}}
+
+\subsection{\texorpdfstring{1. 逻辑链串联}{1. 逻辑链串联}}
+
+问题（静力平衡 + 约束设计）$\rightarrow$ 经验荷载与分段刚体递推（模型 1--3）$\rightarrow$ 离散链正演（模型 4）与连续对照（模型 5）$\rightarrow$ 吃水下界锁定倾角--干舷冲突（模型 6）$\rightarrow$ 单调性最劣角点上的多目标搜索（模型 7）$\rightarrow$ 熵权--TOPSIS 名义解（模型 8--9）$\rightarrow$ 机会约束与干舷优先备选（模型 10 + S2）$\rightarrow$ 守恒/收敛/消融/扫描/MC/权重随机化（检验 1--12）支撑结论可信度与局限边界。
+
+\subsection{\texorpdfstring{2. 证据地图}{2. 证据地图}}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{结论句（论文原意）} & \textbf{依赖模型} & \textbf{依赖检验/证据} & \textbf{强度} & \textbf{备注} \\
+\hline
+Q1：12/24 m/s 两约束满足，36 m/s 双双越限 & 1--4 & 1,6 & 强 & 在静力假设内 \\
+\hline
+Q2：最小球重约 2238 kg，\(\varphi\) 为紧约束 & 1--4,7 & 1,2,6 & 强 & 有效数字应降为约 2.24 t \\
+\hline
+球阻力不可忽略（\(\Delta\varphi\sim2.35^\circ\)） & 3 & 3 & 强 & 消融单点但量级清楚 \\
+\hline
+\(\theta\le5^\circ\) $\Rightarrow$ \(d\ge1.643\) m（36+1.5）与设计无关 & 6 & 图 5 与求解器重合 & 强 & 拓扑+静力 \\
+\hline
+S1：V/26.82 m/4270 kg，吃水距下界 4.3 cm & 4,6,7,8,9 & 7,8,12 & 中--强 & 物理逼近下界强；「唯一最优」弱（夺魁 17.3\%） \\
+\hline
+角点归约正确 & 7 & 7,8 & 强 & 相对 252 网格 \\
+\hline
+S1 参数扰动下脆弱，S1$'$ 需 4930 kg & 10 & 9,10 & 中 & 依赖扰动律 \\
+\hline
+S2 更适合有浪/干舷关切 & 7（改约束哲学） & 表对照 & 中 & 超出静力模型的工程判断 \\
+\hline
+游动半径对球重不敏感 & 4 & 11 & 中 & Q2 工况 \\
+\hline
+\end{tabularx}
+\end{center}
+\vspace{0.35em}
+
+\subsection{\texorpdfstring{3. 创新点}{3. 创新点}}
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{问题洞察：} 钢桶上/下拓扑 $\Rightarrow$ 吃水解析下界。  
+\item \textbf{模型改造：} 分段 \(H\)、球阻补齐、趴链与整数节。  
+\item \textbf{算法/设计：} 单调性角点归约 + 最轻球代表前沿 + 熵权 TOPSIS + 机会约束与 S2 并列。  
+\item 总体是「规范且有理论咬合的应用」，下界命题与球阻消融是相对突出点。
+\end{itemize}
+
+\subsection{\texorpdfstring{4. 可改进与隐忧}{4. 可改进与隐忧}}
+
+静水无浪与 S1 干舷 0.314 m 叠加是最大外推风险；平面/同向风流；流载系数主导却未实测；TOPSIS 夺魁率低说明交付「单最优」需谨慎；大直径重球安装可行性未建模。
+
+\subsection{\texorpdfstring{5. 一句话学术价值}{5. 一句话学术价值}}
+
+在竞赛级静力系泊设计里，把可计算的正演器、与设计无关的倾角--吃水下界、以及可审计的最劣情景鲁棒选型接到同一条证据链上，并明确标出干舷与参数不确定性下的方案分叉。
+
+\subsection{\texorpdfstring{6. 可借鉴写法（可选）}{6. 可借鉴写法（可选）}}
+
+\begin{enumerate}[leftmargin=1.8em]
+\item 先写清「删除该模块会怎样」（方案池表）。  
+\item 预注册有意义差阈值，再报灵敏度。  
+\item 名义最优、可靠性解、工程备选三套并列，避免单一标量化叙事。
+\end{enumerate}
+
+\subsection{\texorpdfstring{7. 收尾互动}{7. 收尾互动}}
+
+最值得再拆的两块通常是：\textbf{吃水解析下界的证明细节（为何右端斜率压不过左端）}，以及 \textbf{机会约束里满足率随球重先升后崩的力学原因}。若需要，可以只深挖其中一块做成推导导读。
+
+\vspace{0.4em}\hrule\vspace{0.4em}
+
+\section{\texorpdfstring{交稿自检}{交稿自检}}
+
+\begin{itemize}[leftmargin=1.5em]
+\item[\checkmark] 清单 10 个模型均有 2.1--2.6  
+\item[\checkmark] 清单 12 种检验均有 3.1--3.5  
+\item[\checkmark] 每模型含通俗总览、贴合本文类比、关键公式与符号、I$\rightarrow$P$\rightarrow$O  
+\item[\checkmark] 每检验含问题、对照/H\textsubscript{0}、本文操作与数值（或【论文未给】）、优点、局限  
+\item[\checkmark] p 值类表述已写清「意味着/不意味着」（本文多为残差/满足率，已按同类规则处理）  
+\item[\checkmark] 第四章逻辑链与证据地图覆盖主要节点  
+\item[\checkmark] 无编造数值；推断处可追溯原文表/节号  
+\end{itemize}
+\end{document}
