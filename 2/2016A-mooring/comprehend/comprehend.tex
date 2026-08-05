@@ -37,13 +37,15 @@
 
 \textbf{材料：} \texttt{2/2016A-mooring/paper/paper.pdf}（同源：\texttt{main.md} / \texttt{paper.tex}）  
 \textbf{题目：} 2016 高教社杯全国大学生数学建模竞赛 A 题  
-\textbf{Freeze：} \texttt{2016A-mooring-F3}
+\textbf{Freeze：} \texttt{2016A-mooring-F3}\\
+\textbf{导读说明：} 本稿随论文 F4 叙事修订同步：补强「问题分析 $\to$ 建模四层 $\to$ 分问解题」逻辑链解读；模型/检验清单与数值不变。
 
 \vspace{0.4em}\hrule\vspace{0.4em}
 
 \section{\texorpdfstring{通俗总览}{通俗总览}}
 
 这篇论文把近浅海观测浮标的「浮标--钢管--钢桶--重物球--锚链--锚」整条系泊线，建成可求静力平衡的力学机器，再在风--流--水深的不确定箱体上用最劣情景做鲁棒选型，并用一条与锚链/球重无关的吃水解析下界说明：要压住钢桶倾角，吃水就不可能太浅。
+叙事上明确采用「同一正演核、三层用法」：Q1 标定正演 $\to$ Q2 一维求界 $\to$ Q3 最劣情景鲁棒设计。
 
 \vspace{0.4em}\hrule\vspace{0.4em}
 
@@ -84,7 +86,7 @@
 \subsection{\texorpdfstring{收录说明}{收录说明}}
 
 \begin{itemize}[leftmargin=1.5em]
-\item 未单独成节但已并入某处说明的次要步骤：锚链投影宽度「体积等效 vs 链环几何」双口径互校（并入模型 1/3 与检验 5）；120 点网格括区 + 60 步二分求吃水、球重粗扫描 + 二分 + 10 kg 取整（并入模型 4、7 的 2.3）；整数链节可制造约束剔除（并入模型 4/7）；浮标竖直、铰接无摩擦等假设（见 §1.5 与各模型 2.3）。
+\item 未单独成节但已并入某处说明的次要步骤：锚链投影宽度「体积等效 vs 链环几何」双口径互校（并入模型 1/3 与检验 5）；120 点网格括区 + 60 步二分求吃水、球重粗扫描 + 二分 + 10 kg 取整（并入模型 4、7 的 2.3）；整数链节可制造约束剔除（并入模型 4/7）；浮标竖直、铰接无摩擦等假设（见 §1.7 与各模型 2.3）；\textbf{§4.0 建模四层与单次正演五步算法、§五各问「解题思路」属于叙事/流程组织，不新增机制模型，解读见第一章 1.3--1.6}。
 \item 材料缺失、无法确认是否存在的方法：正文未出现经典假设检验（t/ANOVA/卡方）、R²/AIC、交叉验证、AHP 的 CR 等【未见到】；波浪动力模型【未见到】（作者明确列为局限）。
 \end{itemize}
 
@@ -96,37 +98,104 @@
 
 近浅海观测网的传输节点靠浮标系泊固定。系统一旦被风、流拉得过斜或锚被拖行，水声设备效果变差甚至节点丢失。痛点在于：设计变量（锚链型号、长度、重物球质量）与环境（风速、流速、水深）耦合，且题面同时要求吃水、游动区域、钢桶倾角「尽可能小」，并给出锚端夹角 \(\varphi\le16^\circ\)、钢桶倾角 \(\theta\le5^\circ\) 两类硬/准硬约束------目标彼此冲突，不能只调一个旋钮。
 
-\subsection{\texorpdfstring{1.2 问题重述（数学语言）}{1.2 问题重述（数学语言）}}
+\subsection{\texorpdfstring{1.2 问题重述（要素四分类）}{1.2 问题重述（要素四分类）}}
 
-\begin{center}
-\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+论文把题面拆成四类对象（F4 叙事起点，便于对接「正演核 / 设计壳」）：
+
+\begin{center}\footnotesize
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}X|}
 \hline
-\textbf{要素} & \textbf{内容} \\
+\textbf{类别} & \textbf{内容} \\
 \hline
-\textbf{已知} & 浮标几何与质量、4 节钢管、密封钢桶、可选重物球、电焊锚链（I--V 型节长与线密度）、抗拖移锚；经验风/流力公式；水深与风、流工况（Q1/Q2 给定；Q3 为箱体） \\
+已知 & 浮标/钢管/钢桶几何与质量；I--V 型链节长与线密度；经验风/流力公式；Q1/Q2 的水深 18\,m 与给定球重/链长 \\
 \hline
-\textbf{约束} & \(\varphi\le16^\circ\)（锚不被拖行）；\(\theta\le5^\circ\)（设备效果）；锚链长度为节长整数倍；浮力足以支撑系泊线净重（否则无平衡吃水） \\
+设计变量 & 锚链型号、链长（须为节长整数倍）、重物球质量 \(m_b\) \\
 \hline
-\textbf{求解} & Q1：给定参数下的静力平衡态（倾角、链形、吃水、游动半径）；Q2：36 m/s 下使两约束可行的最小球重；Q3：风+流+变水深下的型号/整数链长/球重设计及多情景状态 \\
+状态变量 & 吃水 \(d\)、各杆倾角 \(\{\theta_i\}\)、锚端夹角 \(\varphi\)、游动半径 \(R\)、趴链长度 \\
+\hline
+环境输入 & 风速 \(v_w\)、流速 \(v_c\)、水深 \(h\)（Q3 为箱体） \\
+\hline
+约束 & \(\varphi\le16^\circ\)；\(\theta\le5^\circ\)；整数链节；储备浮力充足 \\
+\hline
+求解 & Q1 正演平衡态；Q2 最小可行球重；Q3 鲁棒选型与多情景状态 \\
 \hline
 \end{tabularx}
 \end{center}
-\vspace{0.35em}
+\vspace{0.25em}
+核心目标：吃水、游动区域、钢桶倾角尽可能小并满足硬约束；Q3 无概率分布时按最劣情景处理。硬/软约束哲学分叉正是并列 S1 / S1$'$ / S2 的原因。
 
-核心目标（文中显式）：使吃水、游动区域、钢桶倾角尽可能小，并满足硬约束；Q3 在无概率分布时按最劣情景鲁棒处理。
+\subsection{\texorpdfstring{1.3 子问递进：同一正演核的三层用法}{1.3 子问递进}}
 
-\subsection{\texorpdfstring{1.3 数据挑战与难点}{1.3 数据挑战与难点}}
+\begin{center}\footnotesize
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{1.1cm}|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{3.2cm}|}
+\hline
+子问 & 数学类型 & 输入 / 输出 & 新增难点 \\
+\hline
+Q1 & \textbf{正演} & 参数全给定，$v_c=0$ $\to$ $\theta,\varphi,R,d$，链形 & 姿态--投影--张力耦合；趴链切换 \\
+\hline
+Q2 & \textbf{单变量约束求界} & 调 $m_b$（$v_w=36$）$\to$ 最小可行球重 & 一维可行域边界 \\
+\hline
+Q3 & \textbf{多目标鲁棒设计} & 型号$\times N\times m_b$ + 无分布箱体 $\to$ 方案+情景 & 离散--连续混合；包络；无唯一最优 \\
+\hline
+\end{tabularx}
+\end{center}
+\vspace{0.25em}
+\textbf{读法要点：}三问是同一正演器的三层用法，不是并列三道题------先正演扎实再谈设计。这解释了为何模型 1--5 先于设计模型 7--10，以及 Q2 与 Q3 的「二分最轻球」是同一搜索核的复用。
 
-\begin{itemize}[leftmargin=1.5em]
-\item \textbf{非线性耦合：} 投影面积依赖姿态，姿态又依赖张力；\(H\) 沿线递增。
-\item \textbf{多目标冲突：} 小 \(\theta\) 要求大吃水（命题 4.6），与「干舷」对立。
-\item \textbf{离散--连续混合：} 型号与节数离散，球重与吃水连续。
-\item \textbf{环境箱体无分布：} 只能最劣情景或自设机会约束。
-\item \textbf{静水假设：} 忽略波浪，使干舷结论外推风险大。
-\item \textbf{小样本经验系数：} \(0.625\)、\(374\) 未实测标定，不确定性大。
-\end{itemize}
+\subsection{\texorpdfstring{1.4 全局力学观察与三条解题指引}{1.4 全局力学观察}}
 
-\subsection{\texorpdfstring{1.4 整体建模思路鸟瞰}{1.4 整体建模思路鸟瞰}}
+重物球挂在钢桶\textbf{下方}：钢桶顶端竖向拉力只由浮标净浮力减钢管净重决定，与球重/链型/链长无关。于是 $\tan\theta=H(d)/V(d)$ 只是吃水的函数------球重压 $\theta$ 的唯一通道是加深吃水。三条解题指引：
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.12em]
+\item Q2/Q3 加重球通过加深吃水间接压 $\theta$，不改钢桶顶端力臂结构；
+\item $\theta\le5^\circ$ 覆盖峰值工况时存在与设计无关的吃水下界（模型 6）；贴近下界属物理必然；
+\item 设计自由度主要花在游动半径与抗拖移裕度（$\varphi$）的取舍上------与 Q3 熵权中「最大吃水」权重最低（0.142）相互印证。
+\end{enumerate}
+
+\subsection{\texorpdfstring{1.5 难点--对策对照}{1.5 难点对策}}
+
+\begin{center}\footnotesize
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+难点 & 表现 & 本文对策 \\
+\hline
+非线性耦合 & 投影依赖姿态；$H$ 沿线递增 & 定点迭代 + 分段 $H$（模型 2）；检验 1 \\
+\hline
+趴链切换 & $\varphi$ 在趴链耗尽后突变 & 竖向张力判据（模型 4）；Q1 机制段 \\
+\hline
+多目标冲突 & 小 $\theta\Leftrightarrow$ 大吃水；短链抬 $\varphi$ & 解析下界（模型 6）；Pareto 备选 \\
+\hline
+离散--连续混合 & 型号/$N$ 离散，球重连续 & 整数节 + 组合内二分最轻球（模型 7） \\
+\hline
+环境无分布 & Q3 箱体无概率密度 & 角点归约（检验 7--8）；机会约束与 S2 \\
+\hline
+经验系数不确定 & $0.625$、$374$ 未标定 & 消融/龙卷风图；机会约束（模型 10） \\
+\hline
+静水假设 & 干舷外推风险大 & 不假装已建模；并列干舷优先 S2 \\
+\hline
+\end{tabularx}
+\end{center}
+
+\subsection{\texorpdfstring{1.6 建模四层、正演五步与分问外包}{1.6 建模流程}}
+
+\begin{center}\footnotesize
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{1.8cm}|>{\raggedright\arraybackslash}X|}
+\hline
+层级 & 回答的问题 & 模型 & 下游入口 \\
+\hline
+L1 荷载 & 水平力从哪来？ & 1, 3 & $H_0$、$F_c$、球阻力 \\
+\hline
+L2 杆段 & 如何倾斜、张力如何下传？ & 2 & 链顶 $(H,V)$ \\
+\hline
+L3 正演闭合 & 如何唯一确定吃水与链形？ & 4, 5 + 检验 1 & $(\theta,\varphi,R,d)$ \\
+\hline
+L4 设计壳 & 如何在环境箱体上选型？ & 6--10 & S1 / S1$'$ / S2 \\
+\hline
+\end{tabularx}
+\end{center}
+\vspace{0.25em}
+\textbf{单次正演五步（公共核）：}猜 $d$ $\to$ 算 $H_0,V_0$ $\to$ 杆段定点迭代 $\to$ 接球阻并按趴链递推链 $\to$ 竖向闭合调 $d$ $\to$ 事后守恒校核。
+
+\textbf{分问外包：}Q1 直接跑核；Q2 外包「对 $m_b$ 粗扫描 + 二分」；Q3 外包「角点归约 $\to$ 枚举二分 $\to$ Pareto $\to$ 熵权 TOPSIS $\to$ 机会约束 / 干舷优先」。
 
 \begin{quote}\small
 题面参数与经验荷载\\
@@ -139,11 +208,10 @@
     $\rightarrow$ 模型7（Family C）：单调性$\rightarrow$角点$\rightarrow$最轻可行球重$\rightarrow$Pareto\\
     $\rightarrow$ 模型8+9：熵权 $\rightarrow$ TOPSIS 排序 $\rightarrow$ S1\\
     $\rightarrow$ 模型10：机会约束 $\rightarrow$ S1$'$；另给干舷优先 S2\\
-    $\rightarrow$ 检验1--12：守恒、收敛、消融、灵敏度、族对照、扫描、MC、反事实、权重随机化\\
-    $\rightarrow$ 结论与选型建议\\
+    $\rightarrow$ 检验1--12 $\rightarrow$ 结论与选型建议\\
 \end{quote}
 
-\subsection{\texorpdfstring{1.5 变量与假设速览}{1.5 变量与假设速览}}
+\subsection{\texorpdfstring{1.7 变量与假设速览}{1.7 变量与假设速览}}
 
 \begin{center}
 \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
@@ -154,7 +222,8 @@
 \hline
 \end{tabularx}
 \end{center}
-\vspace{0.35em}
+\vspace{0.25em}
+跨机制族方案池（删模块后果）：A 主正演 / B 离散误差条 / C 设计壳------与「三层用法」一致：没有 A 就没有后面一切。
 
 \vspace{0.4em}\hrule\vspace{0.4em}
 
@@ -873,60 +942,71 @@ Richardson 假设光滑渐近；只验 Q2 工况代表性；不覆盖模型结�
 
 \subsection{\texorpdfstring{1. 逻辑链串联}{1. 逻辑链串联}}
 
-问题（静力平衡 + 约束设计）$\rightarrow$ 经验荷载与分段刚体递推（模型 1--3）$\rightarrow$ 离散链正演（模型 4）与连续对照（模型 5）$\rightarrow$ 吃水下界锁定倾角--干舷冲突（模型 6）$\rightarrow$ 单调性最劣角点上的多目标搜索（模型 7）$\rightarrow$ 熵权--TOPSIS 名义解（模型 8--9）$\rightarrow$ 机会约束与干舷优先备选（模型 10 + S2）$\rightarrow$ 守恒/收敛/消融/扫描/MC/权重随机化（检验 1--12）支撑结论可信度与局限边界。
+\textbf{问题分析层：}要素四分类 $\to$ 三问递进（正演/求界/鲁棒）$\to$ 钢桶上下拓扑给出 $\theta$--$d$ 冲突 $\to$ 难点--对策表锁定方法选型。
+
+\textbf{方法层：}经验荷载与分段刚体递推（模型 1--3）$\to$ 离散链正演（模型 4）与连续对照（模型 5）$\to$ 吃水下界锁定倾角--干舷冲突（模型 6）$\to$ 单调性最劣角点上的多目标搜索（模型 7）$\to$ 熵权--TOPSIS 名义解（模型 8--9）$\to$ 机会约束与干舷优先备选（模型 10 + S2）。
+
+\textbf{组织层（§4.0 / §五）：}L1--L4 四层 + 正演五步核；Q1 直接跑核，Q2/Q3 外包搜索与排序；每问先「解题思路」再给数。
+
+\textbf{证据层：}守恒/收敛/消融/扫描/MC/权重随机化（检验 1--12）支撑结论可信度与局限边界。
 
 \subsection{\texorpdfstring{2. 证据地图}{2. 证据地图}}
 
-\begin{center}
-\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\begin{center}\footnotesize
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{1.4cm}|>{\raggedright\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}p{1.0cm}|>{\raggedright\arraybackslash}X|}
 \hline
-\textbf{结论句（论文原意）} & \textbf{依赖模型} & \textbf{依赖检验/证据} & \textbf{强度} & \textbf{备注} \\
+\textbf{结论句（论文原意）} & \textbf{模型} & \textbf{检验} & \textbf{强度} & \textbf{备注} \\
 \hline
-Q1：12/24 m/s 两约束满足，36 m/s 双双越限 & 1--4 & 1,6 & 强 & 在静力假设内 \\
+Q1：12/24 m/s 两约束满足，36 m/s 双双越限 & 1--4 & 1,6 & 强 & 静力假设内；§五.1 正演标定 \\
 \hline
-Q2：最小球重约 2238 kg，\(\varphi\) 为紧约束 & 1--4,7 & 1,2,6 & 强 & 有效数字应降为约 2.24 t \\
+Q2：最小球重约 2238 kg，$\varphi$ 为紧约束 & 1--4,7 & 1,2,6 & 强 & 读为约 2.24\,t；§五.2 一维求界 \\
 \hline
-球阻力不可忽略（\(\Delta\varphi\sim2.35^\circ\)） & 3 & 3 & 强 & 消融单点但量级清楚 \\
+球阻力不可忽略（$\Delta\varphi\sim2.35^\circ$） & 3 & 3 & 强 & 消融单点但量级清楚 \\
 \hline
-\(\theta\le5^\circ\) $\Rightarrow$ \(d\ge1.643\) m（36+1.5）与设计无关 & 6 & 图 5 与求解器重合 & 强 & 拓扑+静力 \\
+$\theta\le5^\circ\Rightarrow d\ge1.643$\,m（36+1.5）与设计无关 & 6 & 图 5 & 强 & 拓扑+静力；对应 §1.4 指引 2 \\
 \hline
-S1：V/26.82 m/4270 kg，吃水距下界 4.3 cm & 4,6,7,8,9 & 7,8,12 & 中--强 & 物理逼近下界强；「唯一最优」弱（夺魁 17.3\%） \\
+S1：V/26.82\,m/4270\,kg，吃水距下界 4.3\,cm & 4,6--9 & 7,8,12 & 中--强 & 逼近下界强；夺魁仅 17.3\% \\
 \hline
 角点归约正确 & 7 & 7,8 & 强 & 相对 252 网格 \\
 \hline
-S1 参数扰动下脆弱，S1$'$ 需 4930 kg & 10 & 9,10 & 中 & 依赖扰动律 \\
+S1 参数扰动脆弱，S1$'$ 需 4930\,kg & 10 & 9,10 & 中 & 依赖扰动律 \\
 \hline
-S2 更适合有浪/干舷关切 & 7（改约束哲学） & 表对照 & 中 & 超出静力模型的工程判断 \\
+S2 更适合有浪/干舷关切 & 7 & 表对照 & 中 & 工程判断 \\
 \hline
-游动半径对球重不敏感 & 4 & 11 & 中 & Q2 工况 \\
+游动半径对球重不敏感 & 4 & 11 & 中 & 呼应 §1.4 指引 3 \\
+\hline
+吃水权在熵权中最低（0.142） & 6,8 & --- & 中 & 与下界锁定叙事一致 \\
 \hline
 \end{tabularx}
 \end{center}
-\vspace{0.35em}
+\vspace{0.25em}
 
 \subsection{\texorpdfstring{3. 创新点}{3. 创新点}}
 
 \begin{itemize}[leftmargin=1.5em]
-\item \textbf{问题洞察：} 钢桶上/下拓扑 $\Rightarrow$ 吃水解析下界。  
-\item \textbf{模型改造：} 分段 \(H\)、球阻补齐、趴链与整数节。  
-\item \textbf{算法/设计：} 单调性角点归约 + 最轻球代表前沿 + 熵权 TOPSIS + 机会约束与 S2 并列。  
+\item \textbf{问题洞察：}钢桶上/下拓扑 $\Rightarrow$ 吃水解析下界；并写成可执行的三条解题指引。
+\item \textbf{模型改造：}分段 \(H\)、球阻补齐、趴链与整数节。
+\item \textbf{算法/设计：}单调性角点归约 + 最轻球代表前沿 + 熵权 TOPSIS + 机会约束与 S2 并列。
+\item \textbf{叙事组织：「正演核三层用法 + 建模四层 + 分问解题思路」使方法与答题清单一一对应。}
 \item 总体是「规范且有理论咬合的应用」，下界命题与球阻消融是相对突出点。
 \end{itemize}
 
 \subsection{\texorpdfstring{4. 可改进与隐忧}{4. 可改进与隐忧}}
 
-静水无浪与 S1 干舷 0.314 m 叠加是最大外推风险；平面/同向风流；流载系数主导却未实测；TOPSIS 夺魁率低说明交付「单最优」需谨慎；大直径重球安装可行性未建模。
+静水无浪与 S1 干舷 0.314\,m 叠加是最大外推风险；平面/同向风流；流载系数主导却未实测；TOPSIS 夺魁率低说明交付「单最优」需谨慎；大直径重球安装可行性未建模。叙事加强后，这些局限更容易在「解题指引 / S2 分叉」处被提前看见。
 
 \subsection{\texorpdfstring{5. 一句话学术价值}{5. 一句话学术价值}}
 
-在竞赛级静力系泊设计里，把可计算的正演器、与设计无关的倾角--吃水下界、以及可审计的最劣情景鲁棒选型接到同一条证据链上，并明确标出干舷与参数不确定性下的方案分叉。
+在竞赛级静力系泊设计里，把可计算的正演器、与设计无关的倾角--吃水下界、以及可审计的最劣情景鲁棒选型接到同一条证据链上，并用「分析$\to$四层建模$\to$分问求解」把这条链写清楚，同时标出干舷与参数不确定性下的方案分叉。
 
-\subsection{\texorpdfstring{6. 可借鉴写法（可选）}{6. 可借鉴写法（可选）}}
+\subsection{\texorpdfstring{6. 可借鉴写法}{6. 可借鉴写法}}
 
 \begin{enumerate}[leftmargin=1.8em]
-\item 先写清「删除该模块会怎样」（方案池表）。  
-\item 预注册有意义差阈值，再报灵敏度。  
-\item 名义最优、可靠性解、工程备选三套并列，避免单一标量化叙事。
+\item \textbf{先定性再定量：}要素四分类 + 子问数学类型表，再进公式。
+\item \textbf{删模块后果表 + 预注册 \(\delta\)：}方案池写清「若删除会怎样」，灵敏度用预注册阈值判是否升级主模型。
+\item \textbf{正演核与设计壳分离：}五步正演写死，Q2/Q3 只描述外包搜索。
+\item \textbf{名义最优 / 可靠性解 / 工程备选三套并列}，权重随机化诚实报告夺魁率。
+\item \textbf{把物理必然写成命题：}吃水下界把「搜索结果吃水偏大」从可疑变成可辩护。
 \end{enumerate}
 
 \subsection{\texorpdfstring{7. 收尾互动}{7. 收尾互动}}
@@ -938,12 +1018,13 @@ S2 更适合有浪/干舷关切 & 7（改约束哲学） & 表对照 & 中 & 超
 \section{\texorpdfstring{交稿自检}{交稿自检}}
 
 \begin{itemize}[leftmargin=1.5em]
-\item[\checkmark] 清单 10 个模型均有 2.1--2.6  
-\item[\checkmark] 清单 12 种检验均有 3.1--3.5  
-\item[\checkmark] 每模型含通俗总览、贴合本文类比、关键公式与符号、I$\rightarrow$P$\rightarrow$O  
-\item[\checkmark] 每检验含问题、对照/H\textsubscript{0}、本文操作与数值（或【论文未给】）、优点、局限  
-\item[\checkmark] p 值类表述已写清「意味着/不意味着」（本文多为残差/满足率，已按同类规则处理）  
-\item[\checkmark] 第四章逻辑链与证据地图覆盖主要节点  
-\item[\checkmark] 无编造数值；推断处可追溯原文表/节号  
+\item[\checkmark] 清单 10 个模型均有 2.1--2.6
+\item[\checkmark] 清单 12 种检验均有 3.1--3.5
+\item[\checkmark] 每模型含通俗总览、贴合本文类比、关键公式与符号、I$\rightarrow$P$\rightarrow$O
+\item[\checkmark] 每检验含问题、对照/H\textsubscript{0}、本文操作与数值（或【论文未给】）、优点、局限
+\item[\checkmark] p 值类表述已写清「意味着/不意味着」（本文多为残差/满足率，已按同类规则处理）
+\item[\checkmark] 第四章逻辑链与证据地图覆盖主要节点
+\item[\checkmark] 第一章已对齐论文 F4：要素分解、子问递进、难点--对策、四层/五步/分问外包
+\item[\checkmark] 无编造数值；推断处可追溯原文表/节号
 \end{itemize}
 \end{document}
