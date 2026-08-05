@@ -1,0 +1,14 @@
+{
+  "note": "M0 直杆基线：锚链按直线段近似，忽略悬链线曲率与贴底",
+  "wind_12ms": {
+    "M0_rigid_chain": {"excursion_radius_m": 12.85, "barrel_angle_deg": 1.25, "draft_m": 0.70},
+    "M1_catenary": {"excursion_radius_m": 14.34, "barrel_angle_deg": 1.11, "draft_m": 0.70},
+    "delta_excursion_pct": 11.6
+  },
+  "wind_24ms": {
+    "M0_rigid_chain": {"excursion_radius_m": 14.92, "barrel_angle_deg": 4.55, "draft_m": 0.70},
+    "M1_catenary": {"excursion_radius_m": 17.53, "barrel_angle_deg": 4.44, "draft_m": 0.70},
+    "delta_excursion_pct": 17.5
+  },
+  "interpretation": "M0 系统性低估游动半径 12–18%；主文采用 M1"
+}

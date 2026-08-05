@@ -1,0 +1,234 @@
+{
+  "feasible_count": 24,
+  "recommended": {
+    "chain_type": "V",
+    "chain_length": 26.0,
+    "ball_mass": 4500,
+    "feasible": true,
+    "worst": {
+      "barrel": 4.856090834871202,
+      "anchor": 0.0,
+      "excursion": 23.12467446459869,
+      "draft": 1.7264807282658838
+    }
+  },
+  "top5": [
+    {
+      "chain_type": "V",
+      "chain_length": 26.0,
+      "ball_mass": 4500,
+      "feasible": true,
+      "worst": {
+        "barrel": 4.856090834871202,
+        "anchor": 0.0,
+        "excursion": 23.12467446459869,
+        "draft": 1.7264807282658838
+      }
+    },
+    {
+      "chain_type": "V",
+      "chain_length": 26.0,
+      "ball_mass": 5000,
+      "feasible": true,
+      "worst": {
+        "barrel": 4.386405624112442,
+        "anchor": 0.0,
+        "excursion": 23.16717164554575,
+        "draft": 1.881753853082173
+      }
+    },
+    {
+      "chain_type": "IV",
+      "chain_length": 26.0,
+      "ball_mass": 4500,
+      "feasible": true,
+      "worst": {
+        "barrel": 4.856090834871202,
+        "anchor": 0.0,
+        "excursion": 23.60480028615766,
+        "draft": 1.7264807282658838
+      }
+    },
+    {
+      "chain_type": "IV",
+      "chain_length": 26.0,
+      "ball_mass": 5000,
+      "feasible": true,
+      "worst": {
+        "barrel": 4.386405624112442,
+        "anchor": 0.0,
+        "excursion": 23.636341872375574,
+        "draft": 1.881753853082173
+      }
+    },
+    {
+      "chain_type": "III",
+      "chain_length": 26.0,
+      "ball_mass": 4500,
+      "feasible": true,
+      "worst": {
+        "barrel": 4.856090834871202,
+        "anchor": 16.0,
+        "excursion": 24.115961123538213,
+        "draft": 1.7264807282658838
+      }
+    }
+  ],
+  "samples": [
+    {
+      "case": {
+        "depth": 16,
+        "wind": 36,
+        "current": 1.5
+      },
+      "result": {
+        "config": {
+          "water_depth": 16,
+          "chain_type": "V",
+          "chain_length": 26.0,
+          "ball_mass": 4500,
+          "wind_speed": 36,
+          "current_speed": 1.5
+        },
+        "draft_m": 1.7264,
+        "excursion_radius_m": 23.1247,
+        "barrel_angle_deg": 4.8561,
+        "pipe_angles_deg_bottom_to_top": [
+          4.8476,
+          4.8392,
+          4.8307,
+          4.8223
+        ],
+        "anchor_angle_deg": 0.0,
+        "chain_on_bottom_m": 7.5469,
+        "chain_suspended_m": 18.4531,
+        "horizontal_force_N": 3769.51,
+        "converged": true
+      }
+    },
+    {
+      "case": {
+        "depth": 18,
+        "wind": 36,
+        "current": 1.5
+      },
+      "result": {
+        "config": {
+          "water_depth": 18,
+          "chain_type": "V",
+          "chain_length": 26.0,
+          "ball_mass": 4500,
+          "wind_speed": 36,
+          "current_speed": 1.5
+        },
+        "draft_m": 1.7264,
+        "excursion_radius_m": 22.0796,
+        "barrel_angle_deg": 4.8561,
+        "pipe_angles_deg_bottom_to_top": [
+          4.8476,
+          4.8392,
+          4.8307,
+          4.8223
+        ],
+        "anchor_angle_deg": 0.0,
+        "chain_on_bottom_m": 5.1098,
+        "chain_suspended_m": 20.8902,
+        "horizontal_force_N": 3769.51,
+        "converged": true
+      }
+    },
+    {
+      "case": {
+        "depth": 20,
+        "wind": 36,
+        "current": 1.5
+      },
+      "result": {
+        "config": {
+          "water_depth": 20,
+          "chain_type": "V",
+          "chain_length": 26.0,
+          "ball_mass": 4500,
+          "wind_speed": 36,
+          "current_speed": 1.5
+        },
+        "draft_m": 1.7264,
+        "excursion_radius_m": 20.9664,
+        "barrel_angle_deg": 4.8561,
+        "pipe_angles_deg_bottom_to_top": [
+          4.8476,
+          4.8392,
+          4.8307,
+          4.8223
+        ],
+        "anchor_angle_deg": 0.0,
+        "chain_on_bottom_m": 2.7561,
+        "chain_suspended_m": 23.2439,
+        "horizontal_force_N": 3769.51,
+        "converged": true
+      }
+    },
+    {
+      "case": {
+        "depth": 18,
+        "wind": 12,
+        "current": 0
+      },
+      "result": {
+        "config": {
+          "water_depth": 18,
+          "chain_type": "V",
+          "chain_length": 26.0,
+          "ball_mass": 4500,
+          "wind_speed": 12,
+          "current_speed": 0
+        },
+        "draft_m": 1.7265,
+        "excursion_radius_m": 15.4219,
+        "barrel_angle_deg": 0.0636,
+        "pipe_angles_deg_bottom_to_top": [
+          0.0635,
+          0.0634,
+          0.0632,
+          0.0631
+        ],
+        "anchor_angle_deg": 0.0,
+        "chain_on_bottom_m": 14.5492,
+        "chain_suspended_m": 11.4508,
+        "horizontal_force_N": 49.23,
+        "converged": true
+      }
+    },
+    {
+      "case": {
+        "depth": 20,
+        "wind": 24,
+        "current": 0.75
+      },
+      "result": {
+        "config": {
+          "water_depth": 20,
+          "chain_type": "V",
+          "chain_length": 26.0,
+          "ball_mass": 4500,
+          "wind_speed": 24,
+          "current_speed": 0.75
+        },
+        "draft_m": 1.7265,
+        "excursion_radius_m": 17.7246,
+        "barrel_angle_deg": 1.3279,
+        "pipe_angles_deg_bottom_to_top": [
+          1.3256,
+          1.3233,
+          1.321,
+          1.3186
+        ],
+        "anchor_angle_deg": 0.0,
+        "chain_on_bottom_m": 9.4074,
+        "chain_suspended_m": 16.5926,
+        "horizontal_force_N": 1028.54,
+        "converged": true
+      }
+    }
+  ]
+}
