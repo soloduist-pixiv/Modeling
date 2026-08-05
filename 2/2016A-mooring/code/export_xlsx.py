@@ -30,6 +30,14 @@ def _flatten_pipes(row: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(pipes, list):
         for i, a in enumerate(pipes, 1):
             out[f"pipe{i}_deg"] = a
+    res = out.pop("residual", None)
+    if isinstance(res, dict):
+        out["res_H_rel"] = res.get("horizontal_rel")
+        out["res_V_N"] = res.get("vertical_abs_N")
+        out["res_geom_m"] = res.get("geometry_abs_m")
+    for k, v in list(out.items()):
+        if isinstance(v, (list, dict)):
+            out[k] = json.dumps(v, ensure_ascii=False)
     return out
 
 
@@ -70,40 +78,43 @@ def _write_sheet(wb: Workbook, title: str, rows: List[Dict[str, Any]], preferred
 
 
 def _summary_rows(report: Dict[str, Any]) -> List[Dict[str, Any]]:
+    lim = report.get("hard_limits", {})
     rows = [
-        {"项目": "Freeze/修订", "数值": report.get("revision", "")},
-        {"项目": "软裕度-钢桶倾角(°)", "数值": report.get("soft_limits", {}).get("barrel_deg")},
-        {"项目": "软裕度-锚端夹角(°)", "数值": report.get("soft_limits", {}).get("anchor_deg")},
-        {"项目": "软裕度-吃水(m)", "数值": report.get("soft_limits", {}).get("draft_m")},
+        {"项目": "修订", "数值": report.get("revision", "")},
+        {"项目": "硬约束-钢桶倾角(°)", "数值": lim.get("barrel_deg")},
+        {"项目": "硬约束-锚端夹角(°)", "数值": lim.get("anchor_deg")},
     ]
     q2 = report.get("q2_ball_search_A", {})
     if q2.get("found"):
         b = q2["best"]
-        rows.extend(
-            [
-                {"项目": "Q2最小球重A(kg)", "数值": b.get("ball_mass")},
-                {"项目": "Q2钢桶倾角(°)", "数值": b.get("barrel_angle_deg")},
-                {"项目": "Q2锚端夹角(°)", "数值": b.get("anchor_angle_deg")},
-                {"项目": "Q2游动半径(m)", "数值": b.get("swim_radius_m")},
-                {"项目": "Q2吃水(m)", "数值": b.get("draft_m")},
-            ]
-        )
+        rows.extend([
+            {"项目": "Q2最小球重A(kg)", "数值": b.get("ball_mass")},
+            {"项目": "Q2钢桶倾角(°)", "数值": b.get("barrel_angle_deg")},
+            {"项目": "Q2锚端夹角(°)", "数值": b.get("anchor_angle_deg")},
+            {"项目": "Q2游动半径(m)", "数值": b.get("swim_radius_m")},
+            {"项目": "Q2吃水(m)", "数值": b.get("draft_m")},
+            {"项目": "Q2紧约束", "数值": q2.get("binding")},
+        ])
     q3 = report.get("q3_design", {})
     best = q3.get("best") or {}
-    rows.extend(
-        [
-            {"项目": "Q3推荐型号", "数值": best.get("chain_type")},
-            {"项目": "Q3推荐链长(m)", "数值": best.get("chain_length")},
-            {"项目": "Q3推荐节数", "数值": best.get("n_links")},
-            {"项目": "Q3推荐球重(kg)", "数值": best.get("ball_mass")},
-            {"项目": "Q3训练可行数", "数值": q3.get("n_feasible_train")},
-            {"项目": "Q3说明", "数值": q3.get("note")},
-            {
-                "项目": "稠密扫描硬约束失败数",
-                "数值": (q3.get("dense_scan") or {}).get("n_fail_hard"),
-            },
-        ]
-    )
+    ver = q3.get("verification") or {}
+    rows.extend([
+        {"项目": "Q3推荐型号", "数值": best.get("chain_type")},
+        {"项目": "Q3推荐链长(m)", "数值": best.get("chain_length")},
+        {"项目": "Q3推荐节数", "数值": best.get("n_links")},
+        {"项目": "Q3推荐球重(kg)", "数值": best.get("ball_mass")},
+        {"项目": "Q3最劣钢桶倾角(°)", "数值": best.get("worst_barrel")},
+        {"项目": "Q3最劣锚端夹角(°)", "数值": best.get("worst_anchor")},
+        {"项目": "Q3最大吃水(m)", "数值": best.get("max_draft")},
+        {"项目": "Q3最小干舷(m)", "数值": best.get("min_freeboard")},
+        {"项目": "Q3权重随机化胜出率", "数值": best.get("win_rate")},
+        {"项目": "可行设计数", "数值": q3.get("n_feasible_designs")},
+        {"项目": "Pareto 规模", "数值": q3.get("pareto_size")},
+        {"项目": "稠密扫描点数", "数值": ver.get("dense_n")},
+        {"项目": "稠密扫描硬约束失败数", "数值": ver.get("dense_hard_fail")},
+        {"项目": "参数扰动下约束满足率", "数值": (ver.get("reliability") or {}).get("satisfaction_rate")},
+        {"项目": "解析吃水下界(36m/s,1.5m/s)", "数值": (q3.get("analytic_draft_bound") or {}).get("vw36_vc1.5")},
+    ])
     return rows
 
 
@@ -139,12 +150,14 @@ def export_xlsx(metrics_path: str = METRICS, out_path: str = OUT_XLSX) -> str:
         "suspended_chain_m",
         "H_N",
         "H_buoy_N",
+        "ball_drag_N",
+        "freeboard_m",
         "vertical_closure_err_m",
+        "res_H_rel",
+        "res_V_N",
+        "res_geom_m",
         "constraint_barrel_ok",
         "constraint_anchor_ok",
-        "margin_barrel_ok",
-        "margin_anchor_ok",
-        "margin_draft_ok",
         "ok",
         "message",
     ]
@@ -157,89 +170,76 @@ def export_xlsx(metrics_path: str = METRICS, out_path: str = OUT_XLSX) -> str:
         r = dict(q2a["best"])
         r["tag"] = "A_min_mass"
         q2_rows.append(r)
-    if q2a.get("best_by_swim"):
-        r = dict(q2a["best_by_swim"])
-        r["tag"] = "A_min_swim"
-        q2_rows.append(r)
     if q2b.get("best"):
         r = dict(q2b["best"])
         r["tag"] = "B_min_mass"
         q2_rows.append(r)
     _write_sheet(wb, "02_Q2调球重", q2_rows, ["tag"] + state_cols)
-
-    _write_sheet(wb, "03_族对照AB", report.get("family_contrast") or [], state_cols)
+    _write_sheet(wb, "03_Q2球重扫描", report.get("q2_ball_sweep") or [], state_cols)
+    _write_sheet(wb, "04_族对照AB", report.get("family_contrast") or [], state_cols)
 
     q3 = report.get("q3_design") or {}
-    _write_sheet(wb, "04_Q3训练情景", q3.get("best_train_rows") or [], state_cols)
+    _write_sheet(wb, "05_Q3最劣情景", q3.get("best_worst_case_rows") or [], ["role"] + state_cols)
 
-    hold = q3.get("holdout") or {}
-    _write_sheet(wb, "05_Q3_holdout", hold.get("rows") or [], state_cols)
+    ver = q3.get("verification") or {}
+    _write_sheet(wb, "06_Q3典型情景", ver.get("typical_rows") or [], state_cols)
 
     design_cols = [
-        "chain_type",
-        "chain_length",
-        "n_links",
-        "ball_mass",
-        "ok_all",
-        "margin_all",
-        "worst_barrel",
-        "worst_anchor",
-        "max_draft",
-        "mean_swim",
-        "mean_draft",
-        "utility",
+        "chain_type", "chain_length", "n_links", "ball_mass", "m_min_continuous",
+        "worst_barrel", "worst_anchor", "max_draft", "max_swim", "min_freeboard",
+        "topsis", "win_rate", "top3_rate",
     ]
     design_rows = []
+    for tag, key in [("recommended", "best"), ("alt_min_draft", "alt_min_draft"), ("alt_min_swim", "alt_min_swim")]:
+        if q3.get(key):
+            r = dict(q3[key])
+            r["tag"] = tag
+            design_rows.append(r)
+    _write_sheet(wb, "07_Q3推荐与备选", design_rows, ["tag"] + design_cols)
+    _write_sheet(wb, "08_Q3_Pareto排序", q3.get("ranked_pareto") or [], design_cols)
+    _write_sheet(wb, "09_各型号最小球重", q3.get("minimal_ball_table") or [], design_cols)
+
+    bound = q3.get("analytic_draft_bound") or {}
+    _write_sheet(wb, "10_解析吃水下界", [{"情景": k, "吃水下界_m": v} for k, v in bound.items()],
+                 ["情景", "吃水下界_m"])
+    _write_sheet(wb, "11_吃水下界曲线", report.get("draft_bound_curve") or [],
+                 ["v_cur", "v_wind", "draft_min_m"])
+
+    mono = report.get("monotonicity") or {}
+    mono_rows = [{"axis": axis, **{k: v for k, v in d.items() if k != "rows"}} for axis, d in mono.items()]
+    _write_sheet(wb, "12_单调性判定", mono_rows, ["axis", "barrel_trend", "anchor_trend", "draft_trend", "swim_trend"])
+
+    _write_sheet(wb, "13_球浮力消融", report.get("ablation_ball_buoyancy") or [], ["ablation"] + state_cols)
+    _write_sheet(wb, "14_球阻力消融", report.get("ablation_ball_drag") or [], ["ablation"] + state_cols)
+    _write_sheet(wb, "15_密度敏感性", report.get("sensitivity_rho") or [], ["rho"] + state_cols)
+    _write_sheet(wb, "16_链阻力敏感性", report.get("sensitivity_chain_drag") or [],
+                 ["chain_drag_scale"] + state_cols)
+    _write_sheet(wb, "17_离散收敛", report.get("grid_refinement") or [],
+                 ["subdivision", "n_elements", "anchor_angle_deg", "span_x_m", "span_y_m"])
+
+    rel = ver.get("reliability") or {}
+    _write_sheet(wb, "18_参数不确定性", [{"指标": k, "数值": v} for k, v in rel.items()], ["指标", "数值"])
+    rbd = ver.get("reliability_based") or {}
+    _write_sheet(wb, "19_可靠性球重曲线", rbd.get("rate_profile") or [], ["ball_mass", "rate"])
+
+    relaxed = report.get("q3_relaxed") or {}
+    relaxed_cols = ["chain_type", "chain_length", "n_links", "ball_mass", "worst_barrel_relaxed",
+                    "worst_barrel_full_box", "worst_anchor", "max_draft", "max_swim", "min_freeboard"]
+    _write_sheet(wb, "20_干舷优先方案", relaxed.get("table") or [], relaxed_cols)
+    strat = []
     if q3.get("best"):
-        r = dict(q3["best"])
-        r["tag"] = "recommended"
-        design_rows.append(r)
-    if q3.get("alt_min_swim"):
-        r = dict(q3["alt_min_swim"])
-        r["tag"] = "alt_min_swim"
-        design_rows.append(r)
-    if q3.get("alt_min_draft"):
-        r = dict(q3["alt_min_draft"])
-        r["tag"] = "alt_min_draft"
-        design_rows.append(r)
-    for r in q3.get("top_margin") or []:
-        rr = dict(r)
-        rr["tag"] = "top_margin"
-        design_rows.append(rr)
-    for r in q3.get("top_hard") or []:
-        rr = dict(r)
-        rr["tag"] = "top_hard"
-        design_rows.append(rr)
-    _write_sheet(wb, "06_Q3推荐与备选", design_rows, ["tag"] + design_cols)
-    _write_sheet(wb, "07_Q3_Pareto", q3.get("pareto_front") or [], design_cols)
+        b = dict(q3["best"]); b["策略"] = "S1 严格 5° 全包络"; strat.append(b)
+    if relaxed.get("best"):
+        b = dict(relaxed["best"]); b["策略"] = "S2 干舷优先"; strat.append(b)
+    _write_sheet(wb, "21_双策略对比", strat, ["策略"] + relaxed_cols)
 
-    dense = q3.get("dense_scan") or {}
-    _write_sheet(wb, "08_稠密扫描最劣", dense.get("worst_rows") or [], state_cols)
-
-    abl = report.get("ablation_ball_buoyancy") or []
-    _write_sheet(wb, "09_球浮力消融", abl, ["ablation"] + state_cols)
-    sens = report.get("sensitivity_rho") or []
-    _write_sheet(wb, "10_密度敏感性", sens, ["rho"] + state_cols)
-
-    # Q2 sweep table for quick plotting in Excel
-    sweep_rows = []
-    try:
-        import sys
-
-        sys.path.insert(0, os.path.dirname(__file__))
-        from mooring_solve import solve_static, result_to_public
-
-        for m in range(1200, 4001, 100):
-            pub = result_to_public(solve_static(36.0, 18.0, float(m), "II", 22.05, family="A"))
-            sweep_rows.append(pub)
-    except Exception as e:
-        sweep_rows = [{"ok": False, "message": f"sweep failed: {e}"}]
-    _write_sheet(wb, "11_Q2球重扫描", sweep_rows, state_cols)
-
-    # integer link examples
     ex = report.get("integer_link_examples") or {}
-    ex_rows = [{"name": k, "length_m": v[0], "n_links": v[1]} for k, v in ex.items()]
-    _write_sheet(wb, "12_整数链节示例", ex_rows, ["name", "length_m", "n_links"])
+    _write_sheet(wb, "22_整数链节示例",
+                 [{"name": k, "length_m": v[0], "n_links": v[1]} for k, v in ex.items()],
+                 ["name", "length_m", "n_links"])
+    _write_sheet(wb, "23_链条投影宽度",
+                 [{"型号": t, **d} for t, d in (report.get("chain_drag_widths") or {}).items()],
+                 ["型号", "volume_equivalent", "link_geometry"])
 
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     wb.save(out_path)

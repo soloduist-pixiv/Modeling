@@ -3,6 +3,7 @@
 
 \usepackage[margin=2.2cm]{geometry}
 \usepackage{amsmath,amssymb,bm}
+\usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
@@ -27,11 +28,13 @@
 \graphicspath{{../results/}}
 \sisetup{detect-all=true}
 
+\newtheorem{proposition}{命题}
+
 \title{\textbf{系泊系统的设计}}
 \author{
   2016\,高教社杯全国大学生数学建模竞赛 A 题\\[0.4em]
-  \small Freeze:~2016A-mooring-F2\quad
-  主模型：离散多刚体静力（分段水平张力）+ Pareto 约束设计
+  \small Freeze:~2016A-mooring-F3\quad
+  主模型：离散多刚体静力递推 + 最劣情景鲁棒设计
 }
 \date{}
 
@@ -40,21 +43,34 @@
 \thispagestyle{empty}
 
 \begin{abstract}
-针对近浅海观测网传输节点的系泊系统设计，建立浮标--钢管--钢桶--重物球--锚链的平面静力模型。
-锚链按无档链环节长离散（基线），并以连续悬链积分作对照；
-水流作用下水平张力沿构件分段递推，链长强制为附表节长的整数倍。
+针对近浅海观测网传输节点，建立浮标--钢管--钢桶--重物球--锚链--锚的平面静力模型。
+锚链按无档链环节长离散，水流作用下水平张力沿构件分段递推 \(H_{i+1}=H_i+F_{c,i}\)；
+重物球悬挂于钢桶之下，本文将其\textbf{自身水流阻力}计入锚链段荷载
+（\SI{36}{m/s}、\SI{1.5}{m/s} 时达 \SI{678}{N}，与整条锚链的分布阻力 \SI{768}{N} 同量级），
+该项使锚端夹角相差 \(2.35^\circ\)，不可忽略。
+
 在海水静止、水深 \SI{18}{m}、II 型链 \SI{22.05}{m}、球重 \SI{1200}{kg} 时：
-风速 \SI{12}{m/s} 下钢桶倾角约 \(1.20^\circ\)、存在约 \SI{6.25}{m} 趴链，游动半径约 \SI{14.65}{m}；
-\SI{24}{m/s} 下钢桶约 \(4.57^\circ\)、锚端夹角约 \(4.66^\circ\)；
-\SI{36}{m/s} 下两约束均突破。
-将球重调至 \textbf{\SI{2238}{kg}} 可使 \SI{36}{m/s} 时钢桶倾角 \(\le 5^\circ\) 且锚端夹角 \(\le 16^\circ\)。
-综合风、流与 \(16\!-\!20\,\mathrm{m}\) 水深，在硬约束与软裕度下由 Pareto 前沿推荐
-\textbf{IV 型链、长 \SI{28.05}{m}（187 节）、球重 \SI{5000}{kg}}；
-训练、hold-out 及 252 点稠密扫描均满足硬约束。
-局限：静水静力与平面假设，未计入波浪与三维流向；问题 3 为离散网格上的折中推荐而非连续全局唯一最优。
+\SI{12}{m/s} 下钢桶倾角 \(1.20^\circ\)、趴链 \SI{6.25}{m}、游动半径 \SI{14.65}{m}；
+\SI{24}{m/s} 下钢桶 \(4.57^\circ\)、锚端夹角 \(4.66^\circ\)；
+\SI{36}{m/s} 下两约束均突破。使两约束同时满足的最小球重为 \textbf{\SI{2238}{kg}}，
+锚端夹角为紧约束。
+
+问题 3 的核心结论来自一条\textbf{解析下界}：钢桶顶端的竖向拉力仅由浮标排水量决定，
+与锚链型号、长度、球重无关，故 \(\theta\le5^\circ\) 直接给出与设计无关的吃水下界
+\(d\ge d_{\min}(v_w,v_c)\)，在 \SI{36}{m/s} + \SI{1.5}{m/s} 下 \(d_{\min}=\SI{1.643}{m}\)。
+在此基础上把问题 3 写成最劣情景鲁棒设计：先由单调性把连续环境包络归约到可验证的角点，
+再对每个（型号，整数节数）二分最轻可行球重，最后用熵权 TOPSIS 在 Pareto 前沿上排序。
+得到三个层次的方案：\textbf{S1 名义最优 V 型 / \SI{26.82}{m}（149 节）/ \SI{4270}{kg}}
+（最大吃水 \SI{1.686}{m}，仅高于解析下界 \SI{4.3}{cm}）；
+\textbf{S1\('\)} 95\% 置信可靠性设计（球重 \SI{4930}{kg}）；
+\textbf{S2 干舷优先 III 型 / \SI{29.52}{m}（246 节）/ \SI{2830}{kg}}
+（吃水 \SI{1.223}{m}、干舷 \SI{0.777}{m}，代价是 \(\theta\) 在包络 17.9\% 的区域越过 \(5^\circ\)）。
+
+局限：静水静力与平面假设，未计入波浪与三维流向；S1 的干舷仅 \SI{0.314}{m}，
+在有浪海况下的可用性无法在本模型内论证，这正是并列给出 S2 的原因。
 
 \vspace{0.6em}
-\noindent\textbf{关键词：}系泊系统；静力平衡；分段水平张力；趴链；Pareto 设计
+\noindent\textbf{关键词：}系泊系统；静力递推；吃水解析下界；最劣情景鲁棒设计；Pareto 前沿；机会约束
 \end{abstract}
 
 \tableofcontents
@@ -63,360 +79,687 @@
 \section{问题重述与答题清单}
 
 系泊系统由浮标、4 节钢管、密封钢桶（含水声设备）、可选重物球、电焊锚链与抗拖移锚组成。
-需在锚端切线与海床夹角 \(\le 16^\circ\)、并尽量控制钢桶倾角（超过 \(5^\circ\) 时设备效果较差）的前提下，
-减小吃水与游动区域。
+设计目标是确定锚链型号、长度与重物球质量，使浮标吃水深度、游动区域与钢桶倾斜角尽可能小；
+硬性要求是锚端切线与海床夹角 \(\varphi\le16^\circ\)（否则锚被拖行、节点丢失），
+钢桶倾角 \(\theta>5^\circ\) 时设备工作效果较差。
 
 \begin{table}[H]
 \centering
 \caption{答题清单}
-\begin{tabular}{clp{8.2cm}}
+\begin{tabular}{clp{8.6cm}}
 \toprule
 子问 & 本文对应 & 交付内容 \\
 \midrule
-问题 1 & \S\ref{sec:q1} & 风速 \(12,24\,\mathrm{m/s}\) 的倾角、链形、吃水、游动半径 \\
-问题 2 & \S\ref{sec:q2} & \(36\,\mathrm{m/s}\) 状态；调节球重使 \(\theta\le 5^\circ,\varphi\le 16^\circ\) \\
-问题 3 & \S\ref{sec:q3} & 风+流+变水深下的型号/整数链长/球重方案与情景表 \\
+问题 1 & \S\ref{sec:q1} & \(12,24\,\mathrm{m/s}\) 的各构件倾角、锚链形状、吃水、游动区域 \\
+问题 2 & \S\ref{sec:q2} & \(36\,\mathrm{m/s}\) 状态；调球重使 \(\theta\le 5^\circ,\varphi\le 16^\circ\) \\
+问题 3 & \S\ref{sec:q3} & 风+流+变水深下的型号/整数链长/球重设计与多情景状态分析 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{问题分析与方案池}
+\section{问题分析}
 
-各子问属静力机构求解与约束设计。按机制族给出三类方案：
+\subsection{三个子问的性质不同}
+
+问题 1 是\textbf{正演}：参数全给定，求静力平衡态。
+问题 2 是\textbf{单变量约束求解}：在一维设计空间上找可行域边界。
+问题 3 是\textbf{不确定环境下的多目标鲁棒设计}：设计变量离散（型号 \(\times\) 整数节数 \(\times\) 球重），
+环境是三维连续箱体 \(16\le h\le20\)、\(0\le v_w\le36\)、\(0\le v_c\le1.5\)，
+题面未给出该箱体上的概率分布，因此只能按最劣情景处理。
+
+\subsection{一个决定全局的观察}
+
+把三个子问放在一起看，真正约束设计的不是锚链，而是浮标本身。
+原因是\textbf{重物球挂在钢桶下方}：球重通过钢桶向上传递为张力，
+但钢桶顶端的竖向拉力只等于“浮标净浮力减去四节钢管净重”，与球重、链型、链长都无关。于是
+\begin{equation}\label{eq:key}
+\tan\theta=\frac{H(d)}{\rho g\pi R^2 d-m_{\mathrm{buoy}}g-4G_{\mathrm{pipe}}-G_{\mathrm{bar}}/2}
+\end{equation}
+只是吃水 \(d\) 的函数。球重之所以能压小 \(\theta\)，完全是因为它把浮标压得更深。
+这把“倾角、吃水、游动区域三者尽可能小”的模糊目标，
+变成了一个\textbf{可以解析写出的取舍}：要小倾角就必须要大吃水，二者不可兼得（\S\ref{sec:bound}）。
+
+\subsection{跨机制族方案池}
 
 \begin{table}[H]
 \centering
-\caption{跨机制族方案池}
-\begin{tabular}{clp{7.5cm}}
+\caption{方案池}
+\begin{tabular}{clll}
 \toprule
-方案 & 机制族 & 角色 \\
+方案 & 机制族 & 角色 & 若删除的后果 \\
 \midrule
-A & 离散多刚体铰接静力 + 分段 \(H\) & \textbf{主模型 / 基线} \\
-B & 连续重链悬链积分 + 刚性杆段 & 对照（误差条） \\
-C & 正演外包的约束网格 / Pareto & 问题 2/3 设计壳 \\
+A & 离散多刚体铰接静力 + 分段 \(H\) & \textbf{主模型 / 基线} & 无正演 \\
+B & 连续重链积分 + 刚性杆段 & 对照，给离散误差条 & 失去独立交叉验证 \\
+C & 正演外包的最劣情景鲁棒设计 & 问题 2/3 设计壳 & 无法回答设计问 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-禁止伪三方案（如仅改求解容差）。
-预注册指标：\(\theta_{\mathrm{barrel}}\)、\(\varphi_{\mathrm{anchor}}\)（硬约束）、\(R_{\mathrm{swim}}\)、\(d_{\mathrm{draft}}\)；
-比较阈值 \(\delta\)：倾角 \(0.5^\circ\)、半径 \(0.1\,\mathrm{m}\)、吃水 \(0.05\,\mathrm{m}\)。
+预注册指标：\(\theta_{\mathrm{bar}}\)、\(\varphi_{\mathrm{anchor}}\)（硬约束），
+\(R_{\mathrm{swim}}\)、\(d_{\mathrm{draft}}\)（目标）；
+有意义差阈值 \(\delta\)：倾角 \(0.5^\circ\)、半径 \SI{0.1}{m}、吃水 \SI{0.05}{m}。
 
 \section{基本假设}
 
-\begin{enumerate}[leftmargin=1.6em,itemsep=0.25em]
-  \item 静水平衡，忽略波浪与动力响应；放松则倾角与张力可能显著放大。
-  \item 系统在风/流向共面内运动；构件为刚性，铰接无摩擦。
-  \item 风力/流力用题面公式；浮标风投影取直径\(\times\)干舷，流投影取迎流面积；柱体流力用直径与姿态修正。
-  \item 钢管与钢桶在所求吃水下完全浸没；锚固定于平坦海床。
-  \item 重物球与锚链按钢密度估算排水体积并计入净重。
-  \item \(g=9.8\,\mathrm{m/s}^2\)，\(\rho=1025\,\mathrm{kg/m}^3\)（敏感性见第\ref{sec:check}节）。
-  \item 问题 3 流速沿水深均匀（题面未给剖面）；风、流方向一致。
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.22em]
+  \item 静水平衡，忽略波浪、涡激与动力响应；放松则倾角与张力包络显著放大，本文结论偏危险侧。
+  \item 系统在风/流向共面内运动；钢管、钢桶为刚性杆，铰接无摩擦；锚固定于平坦海床。
+  \item 风力、水流力用题面经验公式，投影面积按各构件姿态修正。
+  \item 钢管与钢桶在所求吃水下完全浸没；浮标保持竖直（其倾覆力矩由内部配重平衡）。
+  \item 重物球按钢密度估算排水体积，浮力与自身阻力均计入；球视为集中质量与集中阻力。
+  \item \(g=9.8\,\mathrm{m/s}^2\)，\(\rho=1025\,\mathrm{kg/m}^3\)（敏感性见 \S\ref{sec:check}）。
+  \item 问题 3 流速沿水深均匀（题面未给剖面）；风、流方向一致（最劣取向）。
   \item 锚链长度为附表节长的整数倍（可制造约束）。
+  \item 趴链段的水流阻力与海床摩擦忽略：该段张力已由海床反力承担，锚端切线水平。
 \end{enumerate}
 
 \section{模型建立}
 
-\subsection{符号与荷载}
+模型示意见图~\ref{fig:schematic}：左为物理构型与荷载，中为任一杆段的自由体，右为求解链条。
 
-记吃水为 \(d\,(\mathrm{m})\)，风速 \(v_w\)，流速 \(v_c\)。浮标风力
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_schematic.png}
+\caption{离散多刚体静力模型：物理构型与荷载、杆段自由体、求解链条}
+\label{fig:schematic}
+\end{figure}
+
+\subsection{荷载与净重}
+
+记吃水 \(d\)、风速 \(v_w\)、流速 \(v_c\)。浮标风力与水流力
 \begin{equation}
-F_w=0.625\cdot\bigl(2\cdot(2-d)\bigr)\cdot v_w^2,
+F_w=0.625\cdot 2(2-d)\cdot v_w^2,\qquad
+F_{c,\mathrm{buoy}}=374\cdot 2d\cdot v_c^2,
 \end{equation}
-浮标水流力 \(F_{c,b}=374\cdot(2d)\cdot v_c^2\)。
-圆柱构件（钢管/钢桶/等效锚链）在倾角 \(\theta\)（与竖直夹角）下的迎流投影取
+二者之和即递推起点 \(H_0(d)\)。注意
 \begin{equation}
-S\approx 2rL|\cos\theta|+\pi r^2|\sin\theta|,
+\frac{\mathrm{d}H_0}{\mathrm{d}d}=-2\times0.625\,v_w^2+2\times374\,v_c^2,
 \end{equation}
-相应水流力 \(F_c=374\,S\,v_c^2\)。
+在 \((v_w,v_c)=(36,1.5)\) 处为 \(-1620+1683=+63\,\mathrm{N/m}\)：
+\textbf{吃水加深带来的风力减小几乎恰好被水流力的增大抵消}，
+故该角点上 \(H_0\) 近似与吃水无关（数值验证：吃水由 \SI{0.80}{m} 增到 \SI{1.82}{m} 时
+\(H_0\) 仅由 \SI{3290}{N} 变到 \SI{3355}{N}，即 1.9\%）。这个巧合使 \S\ref{sec:bound} 的下界很紧。
 
-浮标浮力 \(B=\rho g\pi R^2 d\)。竖直方向在浮标底铰处张力竖直分量
+倾角为 \(\theta\)（与竖直线夹角）的圆柱构件，迎流投影取
 \begin{equation}
-V_0=B-m_{\mathrm{buoy}}g.
+S=2rL|\cos\theta|+\pi r^2|\sin\theta|,\qquad F_c=374\,S\,v_c^2 .
 \end{equation}
-构件净重（向下为正）\(G=mg-\rho g V_{\mathrm{disp}}\)。
+构件净重 \(G=mg-\rho gV_{\mathrm{disp}}\)，浮标底铰处竖向拉力
+\(V_0=\rho g\pi R^2d-m_{\mathrm{buoy}}g\)。
 
-\subsection{刚性杆段：力矩平衡与分段水平张力}
+\paragraph{重物球（本文补充项）。}
+质量 \(m_b\) 的实心钢球半径 \(r_b=(3m_b/4\pi\rho_s)^{1/3}\)，迎流面积 \(\pi r_b^2\)，
+阻力 \(F_{c,\mathrm{ball}}=374\pi r_b^2v_c^2\)。\SI{4270}{kg} 时 \(r_b=\SI{0.507}{m}\)、
+\(F_{c,\mathrm{ball}}=\SI{678}{N}\)。球挂在钢桶与锚链的连接处，因此该力
+\textbf{只进入锚链段的水平张力，不改变钢桶倾角}——
+这是式~\eqref{eq:key} 与 \S\ref{sec:bound} 成立的前提，
+也是消融实验中锚端夹角变化 \(2.35^\circ\) 而钢桶倾角几乎不动的原因。
 
-对长 \(L\)、净重 \(G\)、顶端水平张力 \(H_u\)、分布水流力 \(F_c\)（作用在杆中点）的均匀杆，由对底端取矩得
-\begin{equation}
-\theta=\arctan\frac{H_u+F_c/2}{V_u-G/2},\qquad
-V_{\ell}=V_u-G,\qquad
-H_{\ell}=H_u+F_c.
-\end{equation}
-当 \(v_c=0\) 时退化为 \(\theta=\arctan\bigl(H/(V_u-G/2)\bigr)\) 且 \(H\) 沿系泊线近似恒定。
-
-递推起点取浮标底铰处
-\begin{equation}
-H_0=F_w+F_{c,b}.
-\end{equation}
-四节钢管与钢桶依次传递；因 \(F_c\) 依赖姿态，对倾角做定点迭代。
-重物球为集中净重，链顶
-\begin{equation}
-V_c=V_{\ell}-G_{\mathrm{ball}},\qquad H_c=H_{\ell}.
-\end{equation}
-
-若将全部构件流力一次性叠加到同一 \(H\) 并赋给所有杆段，将高估上部倾角、扭曲问题 3 设计排序。
-本文采用分段递推以避免该偏差。
-
-\subsection{Family A：离散锚链、趴链与整数链节}
-
-链节长取附表节长（II 型 \(0.105\,\mathrm{m}\)）。给定名义长度 \(L\) 时，取
-\begin{equation}
-N=\mathrm{round}(L/\ell_{\mathrm{link}}),\qquad L=N\ell_{\mathrm{link}},
-\end{equation}
-保证可制造。各节用同上力矩公式；有流时链节亦按等效半径计入局部 \(F_c\) 并使 \(H\) 沿链递增。
-
-若 \(V_c < w L_{\mathrm{chain}}\)（\(w\) 为单位长度净重），则出现趴链：悬空长度 \(L_s=V_c/w\)，抬起点锚端角 \(\varphi=0\)；
-否则全悬空，末端
-\begin{equation}
-\varphi=\arctan(V_{\mathrm{end}}/H_{\mathrm{end}})
-\end{equation}
-（与海床夹角）。水平游动半径为各杆水平投影与链水平跨度之和；几何闭合
-\begin{equation}
-d+\sum_i L_i\cos\theta_i + y_{\mathrm{chain}}=H_{\mathrm{water}}.
-\end{equation}
-对 \(d\) 用网格括区 + 二分，使竖直闭合误差达 \(10^{-3}\,\mathrm{m}\) 量级。
-
-\subsection{Family B：连续悬链对照}
-
-悬空段按局部 \(\alpha=\arctan(V/H)\) 积分，并同样允许分段 \(H\)（有流时）；趴链判定同 A。
-用于估计离散误差，\textbf{不替代 A 作主报}。
-
-\subsection{Family C：约束设计与 Pareto}
-
-\textbf{问题 2：}链型与链长固定，对球重做粗网格 + 二分，取满足 \(\theta\le 5^\circ,\varphi\le 16^\circ\) 的最小球重
-（再四舍五入至 \(1\,\mathrm{kg}\) 并复核）。
-
-\textbf{问题 3：}在型号 \(\times\) 整数链长 \(\times\) 球重网格上，要求训练情景全部满足硬约束；
-输出多目标 Pareto 前沿（最小化平均游动半径、平均/最大吃水、球重、最劣倾角与锚角）。
-软裕度优先：\(\theta\le 4.5^\circ\)、\(\varphi\le 14^\circ\)、\(d\le 1.85\,\mathrm{m}\)。
-推荐方案在软裕度可行集上按均衡效用选取，并报告最小游动/最低吃水备选。
-Hold-out 情景与 252 点稠密扫描仅用于评估，不参与选型。
-
-\section{结果}
-
-可复现脚本：\texttt{code/mooring\_solve.py}；数值汇总：\texttt{results/metrics.json}；
-表格工作簿：\texttt{results/results\_tables.xlsx}。
-
-\subsection{问题 1（及 \texorpdfstring{\SI{36}{m/s}}{36 m/s} 对照）}
-\label{sec:q1}
-
-条件：水深 \SI{18}{m}，II 型链 \SI{22.05}{m}（210 节），球重 \SI{1200}{kg}，\(v_c=0\)。主模型 A：
+\paragraph{锚链投影宽度。}
+每米链条的迎流宽度用两个独立口径估计并互相校核（表~\ref{tab:width}）。
+两者相差 5\%--12\%，量级一致，故该量按已知处理而非拟合；
+其 \(\pm30\%\) 扰动对结论的影响在 \S\ref{sec:check} 中量化。
 
 \begin{table}[H]
 \centering
-\caption{钢桶/钢管倾角、吃水、游动半径与锚端角（Family A）}
-\label{tab:q1}
-\begin{tabular}{cccccccc}
+\caption{每米锚链的迎流投影宽度（\(\mathrm{m^2/m}\)）}
+\label{tab:width}
+\begin{tabular}{lccccc}
 \toprule
-\(v_w\) & \(d\) & \(R\) & \(\theta_{\text{桶}}\) & \(\varphi_{\text{锚}}\) & \(\theta_{\text{管1--4}}\) & 趴链 & \(H\) \\
-(m/s) & (m) & (m) & (\(^\circ\)) & (\(^\circ\)) & (\(^\circ\)) & (m) & (N) \\
+型号 & I & II & III & IV & V \\
 \midrule
-12 & 0.683 & 14.65 & 1.20 & 0.00 & 1.16--1.18 & 6.25 & 237 \\
-24 & 0.697 & 17.78 & 4.57 & 4.66 & 4.41--4.50 & 0 & 938 \\
-36 & 0.720 & 18.87 & 9.45 & 20.96 & 9.15--9.32 & 0 & 2074 \\
+体积等效 \(2r,\ \pi r^2=\mu/\rho_s\) & 0.0228 & 0.0337 & 0.0450 & 0.0562 & 0.0675 \\
+链环几何 \(2\times\)节长\(/6\) & 0.0260 & 0.0350 & 0.0400 & 0.0500 & 0.0600 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-风速 \SI{12}{m/s} 时约束满足且存在趴链；\SI{24}{m/s} 两约束仍满足；\SI{36}{m/s} 时 \(\theta,\varphi\) 均超限。
-整体构型见图\ref{fig:shape}。
+\subsection{刚性杆段：力矩平衡与分段水平张力}
 
-归因：风速升高 \(\Rightarrow\) 干舷风力 \(H\) 升 \(\Rightarrow\) 各杆 \(\theta\) 与链端 \(\varphi\) 升；
-趴链消失后全长参与水平跨距，游动半径趋于链长量级。
-
-Family B 与 A 在 \(12/24\,\mathrm{m/s}\) 下 \(\theta_{\text{桶}}\) 与 \(R\) 一致到报告精度，\(\varphi\) 差 \(\le 0.19^\circ\)
-（图\ref{fig:family}）。竖直闭合误差约为 0。
+对长 \(L\)、净重 \(G\)、顶端张力 \((H_u,V_u)\)、分布水流力 \(F_c\)（合力作用于杆中点）的均匀杆，
+对下端取矩得
+\begin{equation}\label{eq:rod}
+\tan\theta=\frac{H_u+F_c/2}{V_u-G/2},\qquad
+V_{\ell}=V_u-G,\qquad
+H_{\ell}=H_u+F_c .
+\end{equation}
+\(v_c=0\) 时退化为 \(\theta=\arctan\bigl(H/(V_u-G/2)\bigr)\) 且 \(H\) 沿线恒定。
+四节钢管与钢桶依次传递；因 \(F_c\) 依赖姿态，对倾角做定点迭代
+（收敛判据 \(10^{-12}\)，通常 3--5 步）。链顶条件
+\begin{equation}
+V_{\mathrm{chain}}=V_{\ell}-G_{\mathrm{ball}},\qquad
+H_{\mathrm{chain}}=H_{\ell}+F_{c,\mathrm{ball}} .
+\end{equation}
+若把全部构件流力一次性叠加到同一 \(H\) 并赋给所有杆段，
+会高估上部倾角并扭曲问题 3 的方案排序，故采用分段递推。
+荷载沿线的实际构成与增长见图~\ref{fig:load}。
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{fig_chain_shape.png}
-\caption{系泊系统整体构型（水深 \SI{18}{m}，II 型链）}
+\includegraphics[width=\textwidth]{fig_load_path.png}
+\caption{水平荷载的构成与沿系泊线的分段递推：重物球阻力与整条锚链的分布阻力同量级}
+\label{fig:load}
+\end{figure}
+
+\subsection{Family A：离散锚链、趴链与整数链节}
+
+链节长取附表值（II 型 \SI{0.105}{m}）。名义长度取整为 \(N=\mathrm{round}(L/\ell)\)、\(L=N\ell\)，
+保证可制造（例如 V 型 \SI{22.05}{m} 对应 122.5 节，不可制造，已在搜索中剔除）。
+各链节用同一力矩公式，有流时按投影宽度计入局部阻力并使 \(H\) 沿链递增。
+
+\paragraph{趴链判据。}
+记链条单位长度水中净重 \(w\)。若 \(V_{\mathrm{chain}}<wL\)，链条不能整段提起，
+悬空长度由触地点竖向张力为零确定：
+\begin{equation}
+L_s=V_{\mathrm{chain}}/w,\qquad \varphi=0,
+\end{equation}
+余下 \(L-L_s\) 平铺海床；否则全段悬空，末端 \(\varphi=\arctan(V_{\mathrm{end}}/H_{\mathrm{end}})\)。
+
+\paragraph{几何闭合。}
+水平游动半径 \(R\) 为各杆水平投影与链水平跨度之和；竖向闭合
+\begin{equation}\label{eq:closure}
+d+\sum_i L_i\cos\theta_i+y_{\mathrm{chain}}(d)=H_{\mathrm{water}} .
+\end{equation}
+整个平衡态只有一个未知量 \(d\)：用 120 点网格括区 + 60 步二分求解，
+收敛后竖向闭合残差 \(<10^{-13}\,\mathrm{m}\)。
+
+\subsection{Family B：连续重链对照}
+
+把链条视为均匀重链，按局部倾角 \(\alpha=\arctan(V/H)\) 积分
+（有流时同样允许 \(H\) 沿弧长增长），趴链判据同 A。
+仅用于给离散误差条，不作主报模型。
+
+\subsection{独立守恒校核}
+
+每个收敛解都做两项不参与求解的事后校核：
+水平方向要求锚端张力等于浮标荷载加沿途全部阻力之和；
+竖直方向要求浮标净浮力等于系泊线实际承担的全部净重（趴链段由海床承担）。
+二者的相对残差在全部报告状态下均 \(<10^{-9}\)。
+
+\subsection{关键结果：由 \(\theta\le5^\circ\) 推出的吃水解析下界}\label{sec:bound}
+
+\begin{proposition}[吃水下界]
+设钢桶倾角上限为 \(\theta^*\)。则任何满足 \(\theta\le\theta^*\) 的系泊方案，
+其吃水必满足 \(d\ge d_{\min}(v_w,v_c;\theta^*)\)，其中 \(d_{\min}\) 是
+\begin{equation}\label{eq:bound}
+\tan\theta^*\cdot\Bigl(\rho g\pi R^2d-m_{\mathrm{buoy}}g-4G_{\mathrm{pipe}}-\tfrac12G_{\mathrm{bar}}\Bigr)
+=H_0(d)+\sum_{i=1}^{4}F_{c,\mathrm{pipe},i}+\tfrac12F_{c,\mathrm{bar}}
+\end{equation}
+的根；且 \(d_{\min}\) 不依赖于锚链型号、长度与重物球质量。
+\end{proposition}
+
+\begin{proof}
+钢桶顶端的竖向拉力由浮标至钢桶之间的构件唯一决定：\(V_{\mathrm{top}}=V_0-4G_{\mathrm{pipe}}\)，
+其中 \(V_0=\rho g\pi R^2d-m_{\mathrm{buoy}}g\)。
+重物球与锚链都位于钢桶\emph{下方}，其重量以张力形式向上传递，
+已经包含在“浮标必须提供的净浮力”里，即已通过 \(d\) 反映，不额外出现在 \(V_{\mathrm{top}}\) 中。
+把式~\eqref{eq:rod} 用于钢桶即得式~\eqref{eq:bound}。
+左端关于 \(d\) 严格单调增（斜率 \(\rho g\pi R^2\tan\theta^*>0\)），
+右端关于 \(d\) 的导数为 \(2(374v_c^2-0.625v_w^2)\)，
+在题面参数范围内其绝对值远小于左端斜率（\(\le1.7\times10^3\) 对 \(2.8\times10^3\)），
+故差函数严格单调，根唯一，且 \(\theta(d)\) 单调下降。
+\end{proof}
+
+图~\ref{fig:bound} 左给出 \(d_{\min}(v_w,v_c)\) 的曲线族，
+右图验证解析式与完整求解器在不同球重下的数值解完全重合。代表值见表~\ref{tab:bound}。
+
+\begin{table}[H]
+\centering
+\caption{由 \(\theta\le5^\circ\) 推出的吃水下界}
+\label{tab:bound}
+\begin{tabular}{ccccccc}
+\toprule
+\(v_w\) (m/s) & 36 & 36 & 36 & 24 & 24 & 12 \\
+\(v_c\) (m/s) & 1.5 & 1.0 & 0 & 1.5 & 1.0 & 1.5 \\
+\midrule
+\(d_{\min}\) (m) & 1.643 & 1.175 & 0.944 & 1.465 & 0.903 & 1.235 \\
+对应干舷 (m) & 0.357 & 0.825 & 1.056 & 0.535 & 1.097 & 0.765 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+这条命题把“推荐方案吃水偏大”从一个可疑的搜索结果变成了\textbf{物理必然}：
+在 \SI{2}{m} 高的浮标上坚持 \(\theta\le5^\circ\) 覆盖全部极端工况，干舷最多只能剩 \SI{0.357}{m}。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_draft_bound.png}
+\caption{吃水解析下界及其数值验证：解析曲线与完整求解器的解重合}
+\label{fig:bound}
+\end{figure}
+
+\subsection{Family C：最劣情景鲁棒设计}\label{sec:robust}
+
+\paragraph{最劣角点归约。}
+在包络内做逐轴单调性检验，结果如表~\ref{tab:mono}。各指标关于三个环境变量逐轴单调，
+故箱体上的最劣值必在角点取得：\(\theta\) 的最劣点为 \((h,v_w,v_c)=(16,36,1.5)\)，
+\(\varphi\) 的最劣点为 \((20,36,1.5)\)。
+据此把连续包络归约到 4 个角点（另含 \((18,36,1.5)\) 控吃水、\((20,36,0)\) 控无流时的链形），
+设计搜索只需在这 4 点上校核；归约的正确性再由 252 点稠密扫描独立复核。
+
+\begin{table}[H]
+\centering
+\caption{环境变量的逐轴单调性}
+\label{tab:mono}
+\begin{tabular}{lcccc}
+\toprule
+环境变量 & \(\theta_{\mathrm{bar}}\) & \(\varphi_{\mathrm{anchor}}\) & 吃水 & 游动半径 \\
+\midrule
+水深 \(\uparrow\) & 下降 & 上升 & 上升 & 下降 \\
+风速 \(\uparrow\) & 上升 & 上升 & 上升 & 上升 \\
+流速 \(\uparrow\) & 上升 & 上升 & 上升 & 上升 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{设计问题。}
+\begin{equation}
+\min_{(\text{型号},N,m_b)}\ \bigl(\max_k d_k,\ \max_k R_k,\ \max_k\theta_k,\ \max_k\varphi_k,\ m_b\bigr)
+\quad\text{s.t.}\quad \max_k\theta_k\le5^\circ,\ \max_k\varphi_k\le16^\circ .
+\end{equation}
+
+\paragraph{逐（型号，节数）归约。}
+对固定的（型号，节数），吃水关于球重单调增而两个角度单调降，
+因此该组合的整条有效前沿由\textbf{最轻可行球重}这一个点代表：
+更轻不可行，更重只是白白加深吃水。
+注意可行集在球重上是一个\textbf{区间而非上集}——球太重会耗尽浮标储备浮力使方程无解，
+因此用粗扫描先括出区间下沿再二分，最后向上取整到 \SI{10}{kg} 铸造步长。
+
+\paragraph{排序。}
+对硬约束可行集取五目标 Pareto 前沿，再用\textbf{熵权 TOPSIS} 排序
+（熵权由前沿自身的指标离散度确定，避免人工赋权）。
+为回应“标量化结果是权重的产物”这一质疑，
+另在单纯形上随机抽取 4000 组权重，统计每个前沿点夺得第一的频率。
+
+\paragraph{机会约束。}
+名义最优解恰好落在 \(5^\circ\) 边界上，对经验系数的扰动毫无裕度。
+因此再解一个机会约束版本：对海水密度、链条投影宽度、风载与流载系数联合抽样，
+求使最劣角点约束满足率 \(\ge95\%\) 的最轻球重。
+
+\section{结果}
+
+可复现脚本：\texttt{code/mooring\_solve.py}（数值）与 \texttt{code/make\_figures.py}（图）；
+全量数值见 \texttt{results/metrics.json}，分表见 \texttt{results/results\_tables.xlsx}。
+
+\subsection{问题 1（附 \(36\,\mathrm{m/s}\) 对照）}\label{sec:q1}
+
+条件：水深 \SI{18}{m}，II 型链 \SI{22.05}{m}（210 节），球重 \SI{1200}{kg}，\(v_c=0\)。
+
+\begin{table}[H]
+\centering
+\caption{主模型 A 的平衡态}
+\label{tab:q1}
+\begin{tabular}{rrrrrlrr}
+\toprule
+\(v_w\) (m/s) & \(d\) (m) & \(R\) (m) & \(\theta_{\mathrm{bar}}\) (\(^\circ\)) & \(\varphi\) (\(^\circ\)) & 钢管 1--4 (\(^\circ\)) & 趴链 (m) & \(H\) (N) \\
+\midrule
+12 & 0.683 & 14.65 & 1.20 & 0.00 & 1.160,\,1.168,\,1.176,\,1.184 & 6.25 & 237 \\
+24 & 0.697 & 17.78 & 4.57 & 4.66 & 4.413,\,4.441,\,4.470,\,4.499 & 0 & 938 \\
+36 & 0.720 & 18.87 & 9.45 & 20.96 & 9.151,\,9.206,\,9.262,\,9.318 & 0 & 2074 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\SI{12}{m/s} 时两约束均满足且有 \SI{6.25}{m} 趴链，锚端切线水平，抗拖移裕度最大；
+\SI{24}{m/s} 时两约束仍满足但趴链已消失；\SI{36}{m/s} 时 \(\theta\) 与 \(\varphi\) 双双越限。
+整体构型、局部放大与逐构件倾角见图~\ref{fig:shape}，游动区域的俯视图见图~\ref{fig:swim}。
+
+\paragraph{机制。}
+风速升高使 \(H\) 按 \(v_w^2\) 增长（237\(\to\)938\(\to\)\SI{2074}{N}），各杆倾角随之增大；
+趴链一旦耗尽，锚端不再有水平段吸收张力，\(\varphi\) 便从 0 迅速抬起，
+这是 24\(\to\)\SI{36}{m/s} 之间 \(\varphi\) 从 \(4.66^\circ\) 跳到 \(20.96^\circ\) 的原因。
+链形从“贴底的悬链 + 长趴链”过渡到“全悬空的近直链”。
+
+Family B 与 A 在 12/24/36 m/s 下 \(\theta\)、\(R\) 一致到报告精度，\(\varphi\) 最大差 \(0.19^\circ\)，
+远小于预注册阈值 \(1^\circ\)，故不升级主模型。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_chain_shape.png}
+\caption{问题 1/2 的系泊系统整体构型、钢管--钢桶局部放大与逐构件倾角}
 \label{fig:shape}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.98\textwidth]{fig_family_contrast.png}
-\caption{族对照：离散链 A 与连续悬链 B（球重 \SI{1200}{kg}）}
-\label{fig:family}
+\includegraphics[width=0.92\textwidth]{fig_swim_region.png}
+\caption{游动区域俯视图：以锚为心、半径 \(R\) 的圆}
+\label{fig:swim}
 \end{figure}
 
-\subsection{问题 2}
-\label{sec:q2}
+\subsection{问题 2}\label{sec:q2}
 
-在 \SI{36}{m/s}、其余同问题 1 下，球重 \SI{1200}{kg} 不可行。粗网格 + 二分得最小可行球重 \textbf{\SI{2238}{kg}}：
+\SI{36}{m/s}、其余同问题 1 时球重 \SI{1200}{kg} 不可行
+（\(\theta=9.45^\circ\)、\(\varphi=20.96^\circ\)）。
+粗扫描 + 二分得连续最小球重 \SI{2237.28}{kg}，取整到 \textbf{\SI{2238}{kg}}（表~\ref{tab:q2}）。
 
 \begin{table}[H]
 \centering
-\caption{问题 2 最小可行球重对应状态（Family A）}
-\begin{tabular}{lc}
+\caption{问题 2 的最小可行球重及对应状态}
+\label{tab:q2}
+\begin{tabular}{lr}
 \toprule
 量 & 数值 \\
 \midrule
 球重 & \SI{2238}{kg} \\
-钢桶倾角 \(\theta\) & \(4.46^\circ\) \\
-锚端夹角 \(\varphi\) & \(16.00^\circ\) \\
+钢桶倾角 \(\theta_{\mathrm{bar}}\) & \(4.46^\circ\) \\
+锚端夹角 \(\varphi\) & \(16.00^\circ\)（紧约束） \\
 游动半径 \(R\) & \SI{18.53}{m} \\
-吃水 \(d\) & \SI{0.990}{m} \\
-钢管倾角 & \(4.37^\circ\)--\(4.42^\circ\) \\
+吃水 \(d\) & \SI{0.990}{m}（干舷 \SI{1.010}{m}） \\
+钢管倾角 & \(4.375^\circ\)--\(4.423^\circ\) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-对照 B 的最小可行球重约 \SI{2220}{kg}（\(\Delta\approx 18\,\mathrm{kg}\)）。
-球重--倾角曲线见图\ref{fig:ball}：\(\varphi\) 约束先于 \(\theta\) 成为紧约束。
+Family B 的对应值为 \SI{2220}{kg}（\(\Delta=\SI{18}{kg}\)，0.8\%）。
+图~\ref{fig:sweep}(a) 给出球重扫描：\(\theta\) 与 \(\varphi\) 都随球重单调下降，
+但 \(\varphi\) 先于 \(\theta\) 触限，因此\textbf{锚端夹角才是问题 2 的紧约束}，
+边界上 \(\varphi=16.00^\circ\) 而 \(\theta\) 尚有 \(0.54^\circ\) 裕度。
+图~\ref{fig:sweep}(b) 把可行域画在（球重，风速）平面上：
+两条约束曲线的交汇点随风速右移，\SI{36}{m/s} 处即为 \SI{2238}{kg}。
+
+链环细分收敛性表明 210 节的基线在 \(\varphi\) 上带有约 \(0.101^\circ\) 的离散偏差（\S\ref{sec:check}），
+折算到球重约 \SI{15}{kg}，故 \SI{2238}{kg} 应理解为“\SI{2.24}{t} 量级”而非四位有效数字。
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{fig_ball_sweep.png}
-\caption{问题 2：球重扫描（风速 \SI{36}{m/s}）}
-\label{fig:ball}
+\includegraphics[width=\textwidth]{fig_ball_sweep.png}
+\caption{问题 2：球重扫描与（球重，风速）平面上的可行域边界}
+\label{fig:sweep}
 \end{figure}
 
-\subsection{问题 3}
-\label{sec:q3}
+\subsection{问题 3}\label{sec:q3}
 
-训练情景含（水深，\(v_w\)，\(v_c\)）角点与典型组合共 7 组；hold-out 5 组；稠密扫描 252 点仅评估。
-候选均满足整数链节。网格上共 34 个硬约束全可行设计，其中 5 个同时满足软裕度；Pareto 前沿规模 26。
+搜索空间为 5 种型号 \(\times\) \(16\)--\SI{32}{m} 内的整数节数（步长约 \SI{1}{m}）\(\times\) 球重连续。
+在 4 个最劣角点上硬约束全部可行的（型号，节数，最轻球重）组合共 \textbf{29} 个，
+五目标 Pareto 前沿 \textbf{24} 个。熵权为：最劣游动半径 0.270、最劣锚端角 0.271、
+球重 0.222、最大吃水 0.142、最劣桶倾角 0.095。
 
-\noindent\textbf{推荐方案（软裕度 + 均衡效用）：IV 型锚链，长度 \SI{28.05}{m}（187 节），重物球 \SI{5000}{kg}。}
+\subsubsection{S1 名义最优：V 型锚链，\SI{26.82}{m}（149 节），重物球 \SI{4270}{kg}}
 
 \begin{table}[H]
 \centering
-\caption{推荐方案在训练情景下的状态（Family A）}
+\caption{S1 在四个最劣角点的状态}
 \label{tab:q3}
-\begin{tabular}{ccccccc}
+\begin{tabular}{lrrrrrrrr}
 \toprule
-水深 & \(v_w\) & \(v_c\) & \(d\) & \(R\) & \(\theta_{\text{桶}}\) & \(\varphi_{\text{锚}}\) \\
-(m) & (m/s) & (m/s) & (m) & (m) & (\(^\circ\)) & (\(^\circ\)) \\
+角色 & 水深 (m) & \(v_w\) & \(v_c\) & \(d\) (m) & \(R\) (m) & \(\theta\) (\(^\circ\)) & \(\varphi\) (\(^\circ\)) & 趴链 (m) \\
 \midrule
-16 & 36 & 1.5 & 1.801 & 25.83 & 4.48 & 0.00 \\
-18 & 36 & 1.5 & 1.816 & 25.00 & 4.44 & 0.00 \\
-20 & 36 & 1.5 & 1.831 & 24.10 & 4.39 & 1.96 \\
-18 & 24 & 1.0 & 1.781 & 23.43 & 2.02 & 0.00 \\
-16 & 36 & 0   & 1.740 & 22.20 & 0.54 & 0.00 \\
-20 & 36 & 0   & 1.760 & 18.73 & 0.49 & 0.00 \\
-16 & 12 & 1.5 & 1.797 & 25.71 & 4.13 & 0.00 \\
+\(\theta\) 最劣 & 16 & 36 & 1.5 & 1.645 & 24.33 & 4.99 & 0.00 & 5.38 \\
+\(\varphi\) 最劣 & 20 & 36 & 1.5 & 1.686 & 22.45 & 4.85 & 0.40 & 0.00 \\
+吃水最劣 & 18 & 36 & 1.5 & 1.666 & 23.42 & 4.92 & 0.00 & 2.61 \\
+无流极值 & 20 & 36 & 0 & 1.602 & 17.69 & 0.92 & 0.00 & 10.96 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Hold-out 与稠密扫描：硬约束全部通过。
-训练最劣：\(\theta\approx 4.48^\circ\)、\(\varphi\approx 1.96^\circ\)、最大吃水约 \SI{1.83}{m}。
+有流的三个角点上重物球阻力均为 \SI{678}{N}。
+注意 \(\theta\) 最劣点出现在\textbf{最浅水深} \SI{16}{m}，
+而 \(\varphi\) 最劣点出现在\textbf{最深水深} \SI{20}{m}（趴链耗尽、锚端切线抬起）：
+两者位于包络的相对两角，正是需要同时校核多个角点的原因。
 
-机制：较大球重抬高吃水 \(\Rightarrow\) 干舷与 \(F_w\) 下降；重型链提高单位长度净重，利于趴链与控 \(\varphi\)。
-分段流力使链顶 \(H\) 大于浮标端 \(H_0\)，比``全荷载集中到顶端''更符合传力路径。
-
-\begin{table}[H]
-\centering
-\caption{问题 3 Pareto 备选}
-\begin{tabular}{clrrr p{4.2cm}}
-\toprule
-取向 & 型号 & 链长(m) & 节数 & 球重(kg) & 说明 \\
-\midrule
-推荐（裕度均衡） & IV & 28.05 & 187 & 5000 & 软裕度全过 \\
-更短游动 & V & 21.96 & 122 & 5000 & 平均 \(R\) 更小，吃水略高 \\
-更低吃水 & IV & 30.00 & 200 & 4500 & 最大吃水约 \SI{1.70}{m}，\(\theta\) 裕度更紧 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.98\textwidth}
-\centering
-\includegraphics[width=0.92\textwidth]{fig_q3_scenarios.png}
-\caption{推荐方案训练情景倾角}
-\end{subfigure}
-
-\vspace{0.8em}
-\begin{subfigure}{0.98\textwidth}
-\centering
-\includegraphics[width=0.86\textwidth]{fig_q3_pareto.png}
-\caption{可行设计 Pareto 前沿}
-\end{subfigure}
-\caption{问题 3 结果图}
-\label{fig:q3}
-\end{figure}
-
-\section{检验与敏感性}
-\label{sec:check}
-
-\begin{enumerate}[leftmargin=1.6em,itemsep=0.3em]
-  \item \textbf{族对照：}A/B 主指标差 \(<\delta\)，离散误差非主矛盾。
-  \item \textbf{球浮力消融（\SI{24}{m/s}）：}忽略球排水后 \(\theta_{\text{桶}}\) 由 \(4.57^\circ\to 3.85^\circ\)，并出现趴链，净重模块不可删。
-  \item \textbf{密度敏感性：}\(\rho\in\{1020,1025,1030\}\) 时 \(\theta_{\text{桶}}\in[4.55^\circ,4.58^\circ]\)，\(\varphi\in[4.54^\circ,4.78^\circ]\)，变化 \(<\delta\)。
-  \item \textbf{整数链节：}名义 \SI{22.05}{m} 对 V 型不可整除（\(22.05/0.18=122.5\)），搜索中已剔除。
-  \item \textbf{分段 \(H\)：}有流情景下链顶水平张力高于浮标端，避免上部杆被下游流力错误加载。
-  \item \textbf{反事实：}``加重球必定增大游动半径''与扫描不符——可行域内 \(R\) 随球重缓变，约束改善由 \(\theta,\varphi\) 主导。
-  \item \textbf{泄漏控制：}问题 3 选型仅用训练情景；hold-out 与稠密扫描未参与选型。
-\end{enumerate}
-
-\section{优缺点与讨论}
-
-\textbf{优点（有证据）：}基线可复现；A/B 交叉验证；分段流力与整数链节贴近物理/制造；
-问题 2/3 约束可检查；Pareto 与软裕度避免单一字典序冒充``最优''。
-
-\textbf{缺点 / 中等风险：}
-\begin{itemize}[leftmargin=1.6em,itemsep=0.2em]
-  \item 静力、无浪；实际海域可能偏危险侧。
-  \item 风/流投影与均匀流、共面简化。
-  \item 问题 3 仍为离散网格推荐；效用权重可影响折中点（故同时报告备选）。
-  \item 推荐方案吃水仍偏高（约 \SI{1.8}{m}），对密度/附着等扰动敏感。
+\begin{itemize}[leftmargin=1.4em,itemsep=0.2em]
+  \item 最大吃水 \SI{1.686}{m}（出现在 \SI{20}{m} 水深），\textbf{仅高于解析下界 \SI{1.643}{m} 约 \SI{4.3}{cm}}——
+        在 \(\theta\le5^\circ\) 的硬约束下任何方案都不可能明显更浅，说明设计搜索确已逼近理论极限。
+  \item 锚端夹角最劣仅 \(0.40^\circ\)，抗拖移裕度极大；这正是 V 型重链的作用：
+        单位长度净重大，容易形成趴链。
+  \item 252 点稠密扫描硬约束失败数 \textbf{0}，最劣 \(\theta=4.99^\circ\)、最劣 \(\varphi=0.40^\circ\)、
+        最大吃水 \SI{1.686}{m}，与角点归约结果一致，验证了 \S\ref{sec:robust} 的归约。
+  \item 权重随机化下 S1 夺魁率 17.3\%、进入前三 29.7\%。
+        这不是压倒性优势，前沿上多个 V 型方案彼此接近，因此同时给出备选（表~\ref{tab:alt}）。
 \end{itemize}
 
-致命项在静力题面内未检出；外推有浪条件须重新建模。
+\begin{table}[H]
+\centering
+\caption{Pareto 备选}
+\label{tab:alt}
+\small
+\begin{tabular}{llrrrrrr}
+\toprule
+取向 & 型号 & 链长 (m) & 节数 & 球重 (kg) & 吃水 (m) & 最劣 \(R\) (m) & 最劣 \(\varphi\) (\(^\circ\)) \\
+\midrule
+S1 推荐（TOPSIS 首位） & V & 26.82 & 149 & 4270 & 1.686 & 24.33 & 0.40 \\
+最小游动区域 & V & 22.50 & 125 & 4270 & 1.692 & 20.01 & 13.61 \\
+最小吃水 & II & 31.92 & 304 & 4590 & 1.668 & 30.72 & 14.34 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+三者的吃水只相差 \SI{2.4}{cm}，而游动半径相差 \SI{10}{m}、锚端夹角相差 \(13^\circ\)——
+\textbf{吃水几乎与设计无关（由命题锁定），设计自由度实际上全部用在了游动区域与抗拖移裕度的取舍上}。
+图~\ref{fig:pareto}(a) 把这个取舍画成“链越短、游动区越小、但锚端夹角越大”的前沿。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_q3_pareto.png}
+\caption{问题 3 的 Pareto 前沿、五目标平行坐标与权重随机化下的稳定性}
+\label{fig:pareto}
+\end{figure}
+
+\subsubsection{S1\('\) 可靠性设计：同型号链，球重 \SI{4930}{kg}}
+
+S1 的最劣 \(\theta=4.99^\circ\) 恰好贴着 \(5^\circ\)，对经验系数没有裕度。
+联合扰动海水密度（1020--1030）、链条投影宽度（\(\times0.8\)--1.3）、
+风载与流载系数（各 \(\times0.90\)--1.15）后，S1 的约束满足率只有约三分之一（80 组公共随机数下 \textbf{32.5\%}，另用 300 组独立抽样复核得 40.0\%，两者的差异即抽样误差）。
+把球重加到 \textbf{\SI{4930}{kg}} 可使满足率升到 \textbf{98.8\%}，
+代价是吃水从 \SI{1.686}{m} 增至 \SI{1.864}{m}、干舷只剩 \SI{0.136}{m}。
+
+图~\ref{fig:rel}(a) 显示满足率随球重先升后\textbf{崩塌}：
+球重超过约 \SI{5.2}{t} 后，扰动样本中开始出现浮标储备浮力不足、根本没有平衡吃水的情形。
+图~\ref{fig:rel}(b) 的龙卷风图指出，主导不确定性是水流力系数
+（使最劣 \(\theta\) 在 \(4.46^\circ\)--\(5.43^\circ\) 间变动），风载系数次之，
+而海水密度与链条投影宽度几乎无影响（分别 \(0.24^\circ\) 与 \(0.03^\circ\)）。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_reliability.png}
+\caption{机会约束视角：约束满足率随球重的变化，及各不确定输入的影响幅度}
+\label{fig:rel}
+\end{figure}
+
+\subsubsection{S2 干舷优先：III 型锚链，\SI{29.52}{m}（246 节），重物球 \SI{2830}{kg}}
+
+S1 与 S1\('\) 的干舷分别只有 \SI{0.314}{m} 与 \SI{0.136}{m}。
+对一个高 \SI{2}{m} 的浮标，这在有浪海况下是难以接受的，而波浪恰恰是本模型没有建的东西。
+因此给出第三个方案：\textbf{锚端约束 \(\varphi\le16^\circ\) 在整个包络内仍为硬约束}
+（拖锚意味着节点丢失，不可让步），而 \(\theta\le5^\circ\) 只要求覆盖到 \(v_c\le\SI{1.0}{m/s}\)——
+\SI{36}{m/s} 大风与 \SI{1.5}{m/s} 峰值潮流同时出现是包络中最稀有的角落。
+
+\begin{table}[H]
+\centering
+\caption{三种设计策略对照}
+\label{tab:strategy}
+\begin{tabular}{lrrr}
+\toprule
+指标 & S1 & S1\('\) & S2 \\
+\midrule
+型号 / 长度 / 节数 & V / \SI{26.82}{m} / 149 & V / \SI{26.82}{m} / 149 & III / \SI{29.52}{m} / 246 \\
+球重 (kg) & 4270 & 4930 & 2830 \\
+最大吃水 (m) & 1.686 & 1.864 & 1.223 \\
+\textbf{干舷} (m) & 0.314 & 0.136 & \textbf{0.777} \\
+最劣 \(\theta\) (\(^\circ\)) & 4.99 & 4.42 & 7.49 \\
+最劣 \(\varphi\) (\(^\circ\)) & 0.40 & 0.00 & 11.25 \\
+最劣 \(R\) (m) & 24.33 & 24.39 & 27.92 \\
+包络内 \(\theta\le5^\circ\) 占比 & 100\% & 100\% & \textbf{82.1\%} \\
+包络内 \(\varphi\le16^\circ\) 占比 & 100\% & 100\% & 100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+S2 用 2.5 倍的干舷、少 \SI{1.44}{t} 的球重，
+换来 \(\theta\) 在包络 17.9\% 的区域内落在 \(5^\circ\)--\(7.5^\circ\) 之间。
+图~\ref{fig:strategy} 并列三方案：(a) 指标对照，(b) \SI{2}{m} 浮标高度的吃水/干舷分配，
+(c)(d) 在（风速，流速）平面上的 \(\theta\) 分布——S1 全域压在 \(5^\circ\) 以下，S2 只在右上角越线。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_q3_strategies.png}
+\caption{S1 / S1\('\) / S2 三策略对照与设计包络内的合规情况}
+\label{fig:strategy}
+\end{figure}
+
+\paragraph{选型建议。}
+若题面 \(5^\circ\) 视为不可让步的硬指标，取 \textbf{S1}（并在答辩中说明其干舷风险），
+需要抗参数不确定性时取 S1\('\)；
+若允许把 \(5^\circ\) 理解为“设备工作效果”的软目标、
+而把浮标储备浮力与抗拖移视为安全底线，则 \textbf{S2 是工程上更稳健的选择}。
+本文不隐藏这一分歧，而是把它量化为表~\ref{tab:strategy}。
+
+\section{检验与敏感性}\label{sec:check}
+
+汇总见图~\ref{fig:valid}。
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.22em]
+  \item \textbf{守恒校核。} 全部报告状态的水平/竖向力平衡相对残差与几何闭合残差均 \(<10^{-9}\)
+        （多数为机器精度 0）。该校核独立于求解过程。
+  \item \textbf{离散收敛。} 把 II 型链节细分 1/2/4/8 倍（210\(\to\)1680 单元）重解问题 2 工况：
+        \(\varphi=15.996^\circ\to15.945^\circ\to15.920^\circ\to15.907^\circ\)，
+        观测收敛阶 \(p=1.00\)，Richardson 外推 \(15.895^\circ\)，
+        即基线的离散偏差为 \(0.101^\circ\)（占 \(16^\circ\) 判据的 0.6\%）。
+        钢桶倾角、吃水、游动半径在细分下变化 \(<10^{-5}\)。
+  \item \textbf{重物球阻力消融（本文新增项）。} 在最劣情景关闭球阻力：
+        \(\varphi\) 由 \(21.72^\circ\) 降到 \(19.37^\circ\)（\(\Delta=2.35^\circ\)），
+        而 \(\theta\) 仅由 \(5.21^\circ\) 变到 \(5.27^\circ\)。
+        这与球阻力只进入锚链段的判断一致，说明该项不可删。
+  \item \textbf{重物球浮力消融。} \SI{24}{m/s} 下忽略球排水体积：
+        \(\theta\) 由 \(4.57^\circ\) 变到 \(3.85^\circ\)（\(\Delta=0.72^\circ\)）并出现趴链，净重模块不可删。
+  \item \textbf{参数敏感性。} \(\rho\in\{1020,1025,1030\}\) 时 \(\varphi\) 变化 \(0.24^\circ\)；
+        链条投影宽度 \(\pm30\%\) 时 \(\varphi\) 变化 \(0.03^\circ\)。
+        两者均小于预注册阈值，说明结论不依赖这两项的精确取值。
+  \item \textbf{族对照。} A 与 B 在 \(\theta\)、\(R\) 上一致到报告精度，\(\varphi\) 差 \(\le0.19^\circ\)，
+        问题 2 最小球重差 \SI{18}{kg}。离散化不是主要误差来源。
+  \item \textbf{最劣角点归约的独立复核。} 252 点稠密扫描的最劣值与 4 角点归约给出的值完全一致
+        （\(\theta\) \(4.99^\circ\)、\(\varphi\) \(0.40^\circ\)、吃水 \SI{1.686}{m}），硬约束失败 0 次。
+  \item \textbf{机会约束。} 见 S1\('\)，扰动下满足率约 32.5\%（独立复核 40.0\%）\(\to\)98.8\%。
+  \item \textbf{反事实检验。} “加重球必然显著增大游动半径”与扫描不符：
+        问题 2 工况下球重从 \SI{500}{kg} 增到 \SI{5000}{kg}（10 倍）时，
+        吃水从 \SI{0.539}{m} 增到 \SI{1.712}{m}（3.2 倍），
+        而 \(R\) 只在 16.73--\SI{19.46}{m} 之间变化（16\%），且并非单调。
+        约束的改善主要由 \(\theta\)、\(\varphi\) 承担。
+  \item \textbf{整数链节。} V 型 \SI{22.05}{m} 对应 122.5 节，不可制造，已剔除；
+        所有报告链长均为 \(N\ell\)。
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_validation.png}
+\caption{验证汇总：族对照、链环细分收敛性（含 Richardson 外推）、模块消融与敏感性幅度}
+\label{fig:valid}
+\end{figure}
+
+\section{优缺点}
+
+\paragraph{优点。}
+\begin{itemize}[leftmargin=1.4em,itemsep=0.18em]
+  \item 建立了吃水的\textbf{解析下界}，把“倾角小”与“吃水小”之间的冲突写成了与设计无关的闭式关系，
+        并用完整求解器逐点验证；由此可以判断数值最优解距理论极限只有 \SI{4.3}{cm}，
+        而不是只报一个搜索结果。
+  \item 问题 3 的最劣情景由\textbf{单调性归约}得到，而不是人为挑选的情景列表，
+        归约结论又由 252 点稠密扫描独立复核。
+  \item 补齐了重物球自身阻力这一项，并用消融量化其影响（\(\varphi\) 变 \(2.35^\circ\)）；
+        锚链投影宽度用两个独立口径互校。
+  \item 决策层面用熵权 TOPSIS + 4000 次权重随机化，明确报告推荐方案的夺魁率只有 17.3\%，
+        同时给出 Pareto 备选，不把标量化结果冒充唯一最优。
+  \item 用机会约束和干舷优先方案，把“经验公式不确定”“干舷太小”这两条本可以只写在局限里的话，
+        变成了可比较的数字。
+  \item 全部结论有守恒校核、离散收敛（含 Richardson 外推）与族对照三重支撑。
+\end{itemize}
+
+\paragraph{缺点与风险。}
+\begin{itemize}[leftmargin=1.4em,itemsep=0.18em]
+  \item 静水静力、无波浪，是最主要的模型缺口；S1 的 \SI{0.314}{m} 干舷正处在这一缺口最敏感的地方，
+        其可用性无法在本模型内论证。
+  \item 平面运动与风流同向假设给出的是最劣取向，但对三维不一致工况没有给出结果。
+  \item 水流力用均匀流剖面与题面经验公式；龙卷风图显示流载系数是最主要的不确定源，
+        而本文只能用区间扰动而非实测标定处理它。
+  \item 问题 3 的球重虽然连续二分，型号与节数仍是离散枚举（步长约 \SI{1}{m}）；
+        细化到 1 节不会改变结论量级，但前沿点会更密。
+  \item \SI{4270}{kg} 的钢球直径已达 \SI{1.01}{m}，挂在钢桶与锚链的连接处，
+        其局部受力与安装可行性超出本文模型。
+\end{itemize}
 
 \section{改进方向}
 
-\begin{enumerate}[leftmargin=1.6em,itemsep=0.25em]
-  \item 引入规则波或谱浪下的准静力/时域张力包络。
-  \item 流剖面与三维风向不一致时的矢量合成。
-  \item 在可行域内对（型号，链长，球重）做更细网格或连续松弛的多目标搜索。
-  \item 锚抓力曲线替代单纯 \(\varphi\le 16^\circ\) 代理。
-  \item 将钢管--钢桶--链条的流力系数由题面公式校准为分项 \(C_d\)。
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.2em]
+  \item 引入规则波或谱浪下的准静力/时域张力包络，重新评估 S1 的干舷是否可用——
+        这是唯一可能推翻 S1/S2 取舍的因素。
+  \item 用实测或 CFD 标定分项阻力系数，替代题面统一的 \(0.625\)/\(374\)，
+        直接压缩最大的不确定源。
+  \item 放开风向与流向不一致，做三维矢量合成与绕锚点的方位统计，游动区域将由圆变为非对称域。
+  \item 用锚抓力--位移曲线替代 \(\varphi\le16^\circ\) 这一代理判据。
+  \item 在可行域内对（型号，节数，球重）做连续松弛 + 分支定界，
+        给出严格的全局最优性证书而非枚举结果。
+  \item 把浮标形状/高度也纳入设计变量：命题表明 \(d_{\min}\) 反比于 \(\rho g\pi R^2\)，
+        加大浮标直径是同时缓解倾角与干舷矛盾的唯一结构性途径。
 \end{enumerate}
 
 \section{结论}
 
-在给定静力假设与 Freeze \texttt{2016A-mooring-F2} 证据下：
-\begin{enumerate}[leftmargin=1.8em,itemsep=0.35em]
-  \item 问题 1 给出 \(12/24\,\mathrm{m/s}\) 全套几何与倾角，\SI{24}{m/s} 仍满足工作约束；
-  \item 问题 2 在 \SI{36}{m/s} 需将球重提至 \textbf{\SI{2238}{kg}} 方同时满足 \(\theta\le 5^\circ\) 与 \(\varphi\le 16^\circ\)；
-  \item 问题 3 在整数链节与分段流力模型下，推荐 \textbf{IV 型、\SI{28.05}{m}（187 节）、球 \SI{5000}{kg}}，
-        训练/hold-out/稠密扫描硬约束通过，并给出更短游动与更低吃水的 Pareto 备选；
-        适用性限于本题静力与投影假设。
+在静力假设与 Freeze \texttt{2016A-mooring-F3} 的证据下：
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.2em]
+  \item \textbf{问题 1}：\SI{12}{m/s} 时钢桶倾角 \(1.20^\circ\)、吃水 \SI{0.683}{m}、
+        游动半径 \SI{14.65}{m}、趴链 \SI{6.25}{m}；
+        \SI{24}{m/s} 时 \(4.57^\circ\)、\SI{0.697}{m}、\SI{17.78}{m}、锚端 \(4.66^\circ\)，两约束均满足。
+  \item \textbf{问题 2}：\SI{36}{m/s} 时 \SI{1200}{kg} 球不可行；最小可行球重 \textbf{\SI{2238}{kg}}，
+        此时 \(\theta=4.46^\circ\)、\(\varphi=16.00^\circ\)（锚端为紧约束）、
+        吃水 \SI{0.990}{m}、游动半径 \SI{18.53}{m}。
+  \item \textbf{问题 3}：\(\theta\le5^\circ\) 在 \SI{36}{m/s} + \SI{1.5}{m/s} 下强制 \(d\ge\SI{1.643}{m}\)，
+        这是与锚链和球重无关的物理下界。
+        名义最优为 \textbf{V 型 / \SI{26.82}{m}（149 节）/ \SI{4270}{kg}}
+        （吃水 \SI{1.686}{m}，距下界 \SI{4.3}{cm}，包络内硬约束全过）；
+        考虑参数不确定性需加至 \SI{4930}{kg}；
+        若把干舷视为安全底线，则推荐 \textbf{III 型 / \SI{29.52}{m}（246 节）/ \SI{2830}{kg}}，
+        干舷 \SI{0.777}{m}，代价是 \(\theta\) 在包络 17.9\% 的区域内落在 \(5^\circ\)--\(7.5^\circ\)。
 \end{enumerate}
 
+适用范围限于静水、平面、题面经验荷载公式；有浪工况须重新建模。
+
 \appendix
-\section{结果文件索引}
 
-\begin{itemize}[leftmargin=1.6em]
-  \item \texttt{results/metrics.json}：全量数值
-  \item \texttt{results/results\_tables.xlsx}：多工作表结果表（便于查阅）
-  \item \texttt{results/fig\_*.png}：构型、扫描、族对照、情景与 Pareto 图
-  \item \texttt{code/mooring\_solve.py}、\texttt{code/export\_xlsx.py}、\texttt{code/make\_figures.py}
-\end{itemize}
-
-\section{主要符号表}
+\section{图表索引}
 
 \begin{table}[H]
 \centering
-\caption{主要符号}
-\begin{tabular}{cl}
+\begin{tabular}{clp{7.6cm}}
+\toprule
+图 & 文件 & 内容 \\
+\midrule
+1 & \texttt{fig\_schematic.png} & 物理构型、荷载、自由体与求解链条 \\
+2 & \texttt{fig\_chain\_shape.png} & 问题 1/2 整体构型、局部放大、逐构件倾角 \\
+3 & \texttt{fig\_load\_path.png} & 水平荷载构成与沿线张力递推 \\
+4 & \texttt{fig\_ball\_sweep.png} & 问题 2 球重扫描与可行域 \\
+5 & \texttt{fig\_draft\_bound.png} & 吃水解析下界及其数值验证 \\
+6 & \texttt{fig\_q3\_pareto.png} & Pareto 前沿、平行坐标、权重随机化 \\
+7 & \texttt{fig\_q3\_strategies.png} & S1 / S1\('\) / S2 三策略对照 \\
+8 & \texttt{fig\_reliability.png} & 机会约束满足率与龙卷风图 \\
+9 & \texttt{fig\_swim\_region.png} & 游动区域俯视图 \\
+10 & \texttt{fig\_validation.png} & 族对照、离散收敛、消融幅度 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+数据表见 \texttt{results/results\_tables.xlsx}（23 个工作表），复杂度审计见 \texttt{Freeze.md}。
+
+\section{主要符号}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
 \toprule
 符号 & 含义 \\
 \midrule
 \(d\) & 浮标吃水 \\
-\(H_u,H_{\ell}\) & 杆段上/下端水平张力 \\
-\(F_c\) & 构件水流力 \\
-\(\theta\) & 与竖直线夹角 \\
-\(\varphi\) & 锚端切线与海床夹角 \\
-\(R\) & 游动半径（锚到浮标轴水平距） \\
+\(H_i,V_i\) & 第 \(i\) 段顶端的水平/竖向张力 \\
+\(F_{c,i}\) & 第 \(i\) 段的水流阻力 \\
+\(G_i\) & 第 \(i\) 段的水中净重 \\
+\(\theta\) & 构件与竖直线的夹角（钢桶倾角） \\
+\(\varphi\) & 锚端切线与海床的夹角 \\
+\(R\) & 游动半径（锚到浮标轴的水平距离） \\
 \(w\) & 锚链单位长度水中净重 \\
-\(N\) & 锚链节数 \\
+\(L_s\) & 锚链悬空段长度 \\
+\(N,\ell\) & 锚链节数与节长 \\
+\(d_{\min}\) & 由 \(\theta\le5^\circ\) 推出的吃水下界 \\
 \bottomrule
 \end{tabular}
 \end{table}

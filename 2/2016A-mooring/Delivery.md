@@ -1,45 +1,64 @@
-# Delivery.md — 终稿包（F2 修订）
+# Delivery.md — 终稿包（F3 修订）
 
 ## 一页过程摘要
 
-对 2016 国赛 A 题系泊系统，在 F1 基础上完成力学与设计修订（F2）：分段水平张力递推、整数链节、Q3 Pareto + 软裕度 + 稠密扫描，并润色论文。主结论：Q1 给出 12/24 m/s 全套状态；Q2 最小球重 **2238 kg**；Q3 推荐 **IV / 28.05 m（187 节）/ 5000 kg**。
+对 2016 国赛 A 题系泊系统，在 F2 基础上完成一次力学 + 方法学修订（F3）。
+
+**力学。** 补入重物球自身的水流阻力：4270 kg 钢球直径逾 1 m，在 1.5 m/s 流速下受力 678 N，
+与整条锚链的分布阻力 768 N 同量级；因球挂在钢桶之下，该力只进入锚链段，
+消融显示锚端夹角相差 2.35°（12%），而钢桶倾角几乎不动。锚链投影宽度用体积等效与链环几何两个
+独立口径互校（差 5–12%），并验证其 ±30% 扰动仅使 φ 变 0.03°。
+
+**理论。** 证明了一条与设计无关的吃水下界：钢桶顶端的竖向拉力只由浮标排水量决定
+（重物球与锚链都在钢桶下方，其重量已通过吃水体现），故 θ≤5° 直接锁定 d ≥ d_min(v_w, v_c)，
+在 36 m/s + 1.5 m/s 下 d_min = 1.643 m。这条命题把 F2 被评委指出的"推荐吃水偏大"
+从可疑的搜索结果变成了物理必然，也给出了判断搜索是否逼近极限的标尺。
+
+**方法。** Q3 重写为最劣情景鲁棒设计：先用逐轴单调性把连续环境包络归约到 4 个可验证角点
+（再由 252 点稠密扫描独立复核），再对每个（型号，整数节数）二分最轻可行球重，
+最后用熵权 TOPSIS 在 24 点 Pareto 前沿上排序，并用 4000 次权重随机化诚实报告推荐方案
+夺魁率只有 17.3%。在此之上补两层：95% 机会约束的可靠性设计，以及干舷优先的替代方案。
+
+**主结论。** Q1 给出 12/24 m/s 全套状态；Q2 最小球重 **2238 kg**（锚端为紧约束）；
+Q3 给出三层次方案 **S1 V/26.82 m/4270 kg**（吃水 1.686 m，距解析下界 4.3 cm）、
+**S1′ 4930 kg**（扰动下满足率 98.8%）、**S2 III/29.52 m/2830 kg**（干舷 0.777 m）。
 
 ## 六件套索引
 
 | # | 交付物 | 路径 |
 |---|--------|------|
-| 1 | 全文 | `paper/main.md` |
-| 2 | Freeze + results | `Freeze.md`, `results/` |
+| 1 | 全文（Markdown / LaTeX / PDF） | `paper/main.md`、`paper/paper.tex`、`paper/paper.pdf` |
+| 2 | Freeze + results | `Freeze.md`、`results/`（含 24 表 Excel、10 张图） |
 | 3 | 叙事审计 | `NarrativeAudit.md` |
 | 4 | 缺陷–局限映射 | `DefectMap.md` |
 | 5 | 评委报告 | `JudgeReport.md` |
-| 6 | 完成度自检 | 见下 |
+| 6 | 红队复核 + 完成度自检 | `RedTeam.md`、见下 |
 
 ## 完成度自检
 
 | 门槛项 | 通过 | 备注 |
 |--------|------|------|
-| 每子问有节+可追溯数 | 是 | §5.1–5.3 |
-| 摘要含方法+主数+局限 | 是 | |
-| 基线对照 | 是 | A vs B |
-| 假设+放松后果 | 是 | §三 |
-| Checks≥2 | 是 | §六 |
-| 优缺非只扬 | 是 | §七 |
-| 叙事审计干净 | 是 | |
+| 每子问有独立小节 + 可追溯数字 | 是 | §5.1–5.3，全部数值可在 `metrics.json` 按键名定位 |
+| 摘要含方法 + 主数 + 局限 | 是 | |
+| 基线对照 | 是 | Family A vs B，Q2 球重差 18 kg |
+| 假设 + 放松后果 | 是 | §三，共 9 条 |
+| 检验 ≥2 | 是 | §六，共 10 条（守恒、收敛、消融、敏感性、归约复核、机会约束、反事实） |
+| 优缺非只扬 | 是 | §七，5 条缺点均给量化 |
+| 叙事审计干净 | 是 | 三处主动弱化措辞 |
 | Judge 通过 | 是 | 套模风险低 |
-| 无 Freeze 外改数 | 是 | F2 |
-| 无完美/绝对用语 | 是 | |
-
-Budgets: write_round=5/5  experiment_rewind=1/1（本轮为力学修正回跳）
+| 无 Freeze 外改数 | 是 | F3 |
+| 无"完美/绝对"用语 | 是 | |
+| 图文一致 | 是 | F2 的 Pareto 图文矛盾已消除 |
 
 ## 复现
 
 ```bash
 cd 2/2016A-mooring
-python3 code/mooring_solve.py      # 同时写出 metrics.json 与 results_tables.xlsx
-python3 code/make_figures.py
-python3 code/export_xlsx.py       # 若仅需重导 Excel
+pip install numpy matplotlib openpyxl
+python3 code/mooring_solve.py     # 约 5 分钟；写出 metrics.json 与 results_tables.xlsx
+python3 code/make_figures.py      # 约 20 秒；写出 10 张图
 cd paper && xelatex paper.tex && xelatex paper.tex
 ```
 
-排版论文：`paper/paper.tex` → `paper/paper.pdf`；结果表：`results/results_tables.xlsx`。
+作图需要一款中文字体（脚本按 Noto CJK → 文泉驿 → Droid Sans Fallback 顺序自动探测）；
+排版需要 `texlive-xetex`、`texlive-lang-chinese`、`texlive-latex-extra`、`texlive-science`。
