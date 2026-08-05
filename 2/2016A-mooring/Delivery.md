@@ -35,7 +35,7 @@ Budgets: write_round=5/5  experiment_rewind=1/1（本轮为力学修正回跳）
 ## 复现
 
 ```bash
-cd work/2016A-mooring
+cd 2/2016A-mooring
 python3 code/mooring_solve.py      # 同时写出 metrics.json 与 results_tables.xlsx
 python3 code/make_figures.py
 python3 code/export_xlsx.py       # 若仅需重导 Excel
