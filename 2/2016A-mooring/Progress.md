@@ -27,3 +27,4 @@ Budgets: write_round=5/5  experiment_rewind=2/2（F1→F2 力学修正，F2→F3
   - [x] §四.0 建模四层 + 单次正演五步算法
   - [x] §五改名为“问题求解”，各问补解题思路与步骤
   - [x] main.md / paper.tex 同步；paper.pdf 重编译（21 页）
+  - [x] comprehend：对齐 F4 叙事（要素分解/子问递进/四层五步/分问外包）；ComprehendReport.md + comprehend.tex/pdf 更新
