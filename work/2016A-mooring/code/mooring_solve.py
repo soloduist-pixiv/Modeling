@@ -1058,6 +1058,14 @@ def main():
         json.dump(report, f, ensure_ascii=False, indent=2)
     print("Wrote", out)
 
+    try:
+        from export_xlsx import export_xlsx
+
+        xlsx_path = export_xlsx(out, os.path.join(OUT_DIR, "results_tables.xlsx"))
+        print("Wrote", xlsx_path)
+    except Exception as e:
+        print("xlsx export skipped:", e)
+
     print("\n=== Q1/Q2 summary (family A, ball=1200) ===")
     for row in report["q1_q2_fixed_ball"]:
         if row["family"] == "A":
