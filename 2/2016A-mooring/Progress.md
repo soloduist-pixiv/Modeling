@@ -21,3 +21,9 @@
   - [x] Excel 扩展至 24 个工作表；审计文档（Freeze / DefectMap / RedTeam / JudgeReport / NarrativeAudit）同步
 
 Budgets: write_round=5/5  experiment_rewind=2/2（F1→F2 力学修正，F2→F3 力学 + 方法学修正）
+
+- [x] **F4 论文结构优化（本轮，不改 Freeze 数）**
+  - [x] §二问题分析：要素分解、子问递进、难点–对策、整体流程鸟瞰
+  - [x] §四.0 建模四层 + 单次正演五步算法
+  - [x] §五改名为“问题求解”，各问补解题思路与步骤
+  - [x] main.md / paper.tex 同步；paper.pdf 重编译（21 页）
