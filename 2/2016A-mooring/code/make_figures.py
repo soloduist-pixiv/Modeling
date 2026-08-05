@@ -829,8 +829,10 @@ def fig_reliability(metrics: dict):
     fs.finish(ax2, "(b) 龙卷风图：各不确定输入对最劣 $\\theta$ 的影响",
               "钢桶倾角 $\\theta$（°）", None, legend_loc=None)
 
-    note = (f"名义最优满足率 {100*rel.get('satisfaction_rate', 0):.1f}%"
-            f"（恰在约束边界）；S1′ 提升至 {100*rbd.get('rate', 0):.1f}%")
+    note = (f"名义最优 S1 恰在约束边界，满足率约 1/3"
+            f"（{rbd.get('n_draw', 0)} 组公共随机数 {100*rbd.get('rate_at_deterministic', 0):.1f}%，"
+            f"{rel.get('n_draw', 0)} 组独立抽样 {100*rel.get('satisfaction_rate', 0):.1f}%）；"
+            f"S1′ 提升至 {100*rbd.get('rate', 0):.1f}%")
     fs.savefig(fig, out("fig_reliability.png"), note)
 
 
