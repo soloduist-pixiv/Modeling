@@ -76,7 +76,7 @@ S5 Deliver     → final package (this file §Deliverable)
 | **S1** | `MyThought.md`: goals, constraints, data inventory, 答題清单, type labels, preregistered metrics δ, ≥3 **cross-family** candidates | Type Pool; no fake triples (Linear/Ridge/Lasso) |
 | **S2** | `DataAudit.md`, baseline in `results/`, family runs, leakage + complexity audits | Baseline Gate; Leakage Gate; Complexity Gate |
 | **S3** | `RedTeam.md` (≥5 attacks, counterfactual/ablation); Pareto decision | Failure Mode; Quant; Pareto (2 non-dominating rounds → freeze) |
-| **S4** | `paper/main.md` via R1–R5; narrative audit; defect→limitation map; judge report | Freeze exists; Completion Gate; Judge pass or budget exhausted |
+| **S4** | `paper/main.md` via R1–R5（国赛目录 + 5.k 模板；**文风：可解释、去 AI 套话**，见 paper-writer §文风）; narrative audit; defect→limitation map; judge report | Freeze exists; Completion Gate; Judge pass or budget exhausted |
 | **S5** | One user-facing **final package** | All six package items present |
 
 **Intra-session role splits stay mandatory** (Critic/Writer not mixed in one reply). Switching uses rituals in critic/judge refs. Do **not** wait for the user between roles.
@@ -127,7 +127,7 @@ Budgets: write_round=_/5  experiment_rewind=_/1
 
 Ship together:
 
-1. Full paper (`paper/main.md`, all subquestions covered)
+1. Full paper (`paper/main.md`, all subquestions covered; default 国赛体例：摘要分问题、一重述…五按题建模求解、每题含重述+流程图+建立/求解)
 2. `Freeze.md` + `results/` index
 3. Narrative audit (pass or claims removed/downgraded)
 4. Defect → limitation map
@@ -147,7 +147,9 @@ Ban: 完美/绝对/毫无疑问. Prefer: 在给定假设下 / 当前证据支持
 | S1 | [references/architect.md](references/architect.md) |
 | S2 | [references/experiment.md](references/experiment.md) |
 | S3 | [references/critic.md](references/critic.md) |
-| S4 write | [references/paper-writer.md](references/paper-writer.md) |
+| S4 write | [references/paper-writer.md](references/paper-writer.md)（含国赛体例 + 文风/去 AI 感） |
 | S4/S5 judge | [references/judge.md](references/judge.md) |
+
+文风细则已写入 paper-writer，写作时不必再加载外部 humanizer；若用户点名「再去一遍 AI 味」，按 paper-writer §文风重扫即可。
 
 If this skill conflicts with a reference, the **stricter gate** wins.

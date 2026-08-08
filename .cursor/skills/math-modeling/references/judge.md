@@ -20,15 +20,17 @@ Load in **S4 R5** and **S5**.
 ## Rubric
 
 1. Answered every subquestion? (答了 / 偏题 / 未答)  
-2. Innovation vs baseline (not noun stacking)?  
-3. Suite-modeling (zero-gain modules, fake triples, complexity for show)?  
-4. Mathematical explanation / mechanism attribution?  
-5. Figures argue (not decorate)?  
-6. Result-driven modeling (Freeze inconsistency, metric shopping)?  
-7. Assumptions reasonable + relax consequences written?  
-8. Reproducible + baseline present?  
-9. Clear prose; abstract numbers traceable?  
-10. Honest limitations (strengths-only → deduct)?  
+2. 国赛体例结构？每题 `5.k` 含重述段 + 流程图 + 建立（`●` 分析点）+ 求解；缺骨架→结构扣分并回 Writer  
+3. Innovation vs baseline (not noun stacking)?  
+4. Suite-modeling (zero-gain modules, fake triples, complexity for show)?  
+5. Mathematical explanation / mechanism attribution?  
+6. Figures argue (not decorate)?  
+7. Result-driven modeling (Freeze inconsistency, metric shopping)?  
+8. Assumptions reasonable + relax consequences written?  
+9. Reproducible + baseline present?  
+10. Clear prose; abstract numbers (分问题) traceable?  
+11. 文风：少套话、关键推导有解释句；读起来不像生成稿？  
+12. Honest limitations (strengths-only → deduct)?  
 
 | Critic | Judge |
 |--------|-------|
@@ -42,6 +44,7 @@ Conflict → fix experiment or downgrade claims before prose.
 ## Pass standard (= completion bar)
 
 - 答題: **no 未答**  
+- 结构: 每题满足 paper-writer 单问题模板（重述 + 流程图 + 建立/求解），或用户显式指定了替代模板  
 - Suite-model risk **≠ high** (or modules removed + refrozen / claims downgraded + limits)  
 - No untreated “unanswered / severe result-driven” issues  
 - Abstract numbers traceable; limitations nonempty  
