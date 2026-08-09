@@ -45,6 +45,7 @@ Conflict → fix experiment or downgrade claims before prose.
 
 - 答題: **no 未答**  
 - 结构: 每题满足 paper-writer 单问题模板（重述 + 流程图 + 建立/求解），或用户显式指定了替代模板  
+- `paper/paper.pdf` 可编译打开，图表引用无致命缺失  
 - Suite-model risk **≠ high** (or modules removed + refrozen / claims downgraded + limits)  
 - No untreated “unanswered / severe result-driven” issues  
 - Abstract numbers traceable; limitations nonempty  
@@ -57,7 +58,7 @@ Else → fail and run auto-rewind (**do not ask user**).
 
 | Issue | Action | Budget |
 |-------|--------|--------|
-| Prose/structure/missing section/uncited figure | Writer R5 (or R3 if narrative break); **no Freeze number edits** | Writing 5-round budget |
+| Prose/structure/missing section/uncited figure / PDF 编译失败 | Writer R5 (or R3 if narrative break); **no Freeze number edits** | Writing 5-round budget |
 | Suite-model high / no baseline / metric shopping | Critic + Experiment; maybe **revoke Freeze** | Experiment rewind ≤ **1**, then refreeze |
 | Leakage / unreproducible / numbers outside Freeze | Revoke Freeze → Experiment → refreeze → rewrite | Same 1 rewind |
 | Only missing honest limits | Writer: DefectMap + abstract limits | No experiment rewind |

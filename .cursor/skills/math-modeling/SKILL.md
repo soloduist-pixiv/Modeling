@@ -22,8 +22,8 @@ Do not stop at Phase lists or critique prose without advancing reproducible work
    - No `MyThought.md` → start **S1**
    - Has thought + data, no solid baseline/`results/` → **S2**
    - Has experiments, no `RedTeam.md` → **S3**
-   - Has `Freeze.md`, paper incomplete → **S4** (continue R1–R5)
-   - Paper + judge done → assemble **S5** package only
+   - Has `Freeze.md`, `paper/paper.tex` 未完成或 `paper.pdf` 未编译 → **S4** (continue R1–R5)
+   - `paper.pdf` + judge done → assemble **S5** package only
 3. Load **only** the reference for the current stage (progressive disclosure).
 4. Hard-block the user only per §Autonomy; otherwise keep going until the package is ready.
 
@@ -51,7 +51,9 @@ work/<id>/
   results/          # metrics, tables, plots
   RedTeam.md        # S3
   Freeze.md         # end of S2/S3
-  paper/main.md     # S4
+  paper/
+    paper.tex       # S4 主稿（唯一正文源）
+    paper.pdf       # S4 编译产物（xelatex ×2）
   NarrativeAudit.md
   DefectMap.md
   JudgeReport.md
@@ -76,7 +78,7 @@ S5 Deliver     → final package (this file §Deliverable)
 | **S1** | `MyThought.md`: goals, constraints, data inventory, 答題清单, type labels, preregistered metrics δ, ≥3 **cross-family** candidates | Type Pool; no fake triples (Linear/Ridge/Lasso) |
 | **S2** | `DataAudit.md`, baseline in `results/`, family runs, leakage + complexity audits | Baseline Gate; Leakage Gate; Complexity Gate |
 | **S3** | `RedTeam.md` (≥5 attacks, counterfactual/ablation); Pareto decision | Failure Mode; Quant; Pareto (2 non-dominating rounds → freeze) |
-| **S4** | `paper/main.md` via R1–R5（国赛目录 + 5.k 模板；**文风：可解释、去 AI 套话**，见 paper-writer §文风）; narrative audit; defect→limitation map; judge report | Freeze exists; Completion Gate; Judge pass or budget exhausted |
+| **S4** | `paper/paper.tex` + `paper/paper.pdf` via R1–R5（国赛目录 + 5.k 模板；**文风：可解释、去 AI 套话**；见 paper-writer）; narrative audit; defect→limitation map; judge report | Freeze exists; PDF compiles; Completion Gate; Judge pass or budget exhausted |
 | **S5** | One user-facing **final package** | All six package items present |
 
 **Intra-session role splits stay mandatory** (Critic/Writer not mixed in one reply). Switching uses rituals in critic/judge refs. Do **not** wait for the user between roles.
@@ -114,6 +116,7 @@ Maintain in `Progress.md`:
 - [ ] S3 RedTeam + Pareto
 - [ ] S3 Freeze.md
 - [ ] S4 R1 skeleton → R2 evidence → R3 narrative → R4 critique → R5 judge
+- [ ] S4 `paper.tex` 写完且 `paper.pdf` 编译通过（xelatex ×2）
 - [ ] S5 final package complete
 Budgets: write_round=_/5  experiment_rewind=_/1
 ```
@@ -127,7 +130,7 @@ Budgets: write_round=_/5  experiment_rewind=_/1
 
 Ship together:
 
-1. Full paper (`paper/main.md`, all subquestions covered; default 国赛体例：摘要分问题、一重述…五按题建模求解、每题含重述+流程图+建立/求解)
+1. Full paper (`paper/paper.tex` + `paper/paper.pdf`；**不产出** `paper/main.md`；国赛体例：摘要分问题、一重述…五按题建模求解、每题含重述+流程图+建立/求解)
 2. `Freeze.md` + `results/` index
 3. Narrative audit (pass or claims removed/downgraded)
 4. Defect → limitation map

@@ -9,7 +9,7 @@ Contest axes: reasonable assumptions, targeted innovation vs baseline, correct r
 
 Load in **S4**. For R5, also load [judge.md](judge.md).
 
-**Paper format (default):** 国赛中文报告体例（参考样卷 A066 类结构）。除非用户指定美赛 IMRaD / 其他模板，一律按下方 **§Paper format** 输出 `paper/main.md`。
+**Paper format (default):** 国赛中文报告体例（参考样卷 A066 类结构）。除非用户指定美赛 IMRaD / 其他模板，一律按下方 **§Paper format** 写入 **`paper/paper.tex`**，并编译为 **`paper/paper.pdf`**。**不生成 `paper/main.md`。**
 
 ---
 
@@ -47,10 +47,10 @@ No self-praise in the same turn as drafting. Use Critic/Judge rituals when switc
 | Pass | Action | Exit check |
 |------|--------|------------|
 | **R1 Skeleton** | Full TOC per §Paper format; each `5.k` has 重述占位 + 流程图占位 + 建立/求解小节 | Every subquestion has `5.k` |
-| **R2 Evidence** | Tables/figures first; Freeze 数字填入；算法步骤与结果表到位 | Every main number has 表/图/`results/` pointer |
+| **R2 Evidence** | Tables/figures first; Freeze 数字填入 `paper.tex`；算法步骤与结果表到位；**首次编译** | Every main number has 表/图/`results/` pointer; `paper.pdf` builds |
 | **R3 Narrative** | Run audit; cut/downgrade illegal claims；按 §文风 去 AI 感并补解释句 | Audit clean; no empty `5.k`; 文风自检通过 |
 | **R4 Critique** | 模型检验/灵敏度等 + 优缺点/改进；摘要含局限与主数字 | ≥2 check types; not strengths-only |
-| **R5 Judge** | Run judge; fix structure/prose (**never Freeze numbers**); 再扫一遍 AI 套话；completion bar | Bar met or force-deliver at cap |
+| **R5 Judge** | Run judge; fix structure/prose (**never Freeze numbers**); 再扫一遍 AI 套话；**终稿编译**；completion bar | Bar met or force-deliver at cap; `paper.pdf` final |
 
 Failed R1–R4 check → patch same pass. R5 fail → judge auto-rewind table. At 5 rounds → force package with residual risks.
 
@@ -136,6 +136,93 @@ Failed R1–R4 check → patch same pass. R5 fail → judge auto-rewind table. A
 - [ ] 每个小问均有 `5.k`，且含：重述段、流程图、≥1 个「建立」、1 个「求解」  
 - [ ] 建立小节内分析点用 `●` 切开，关键推导有公式编号与配图  
 - [ ] 七、含非空缺点/局限；八、改进与缺陷对应  
+- [ ] `paper/paper.pdf` 编译成功（无未定义引用/缺失图片的致命错误）
+
+---
+
+## LaTeX 产出与编译
+
+### 文件约定
+
+| 路径 | 说明 |
+|------|------|
+| `paper/paper.tex` | **唯一正文源**；所有章节、公式、表图引用写在此 |
+| `paper/paper.pdf` | 交稿 PDF；S4 结束前必须存在且可打开 |
+| `../results/` | 图文件默认目录（`\graphicspath{{../results/}}`） |
+
+**禁止：** 另写 `paper/main.md` 作为正文；审计类文件（`NarrativeAudit.md` 等）仍可用 Markdown。
+
+### 编译命令（默认）
+
+在 `paper/` 目录执行两次（交叉引用与目录）：
+
+```bash
+cd paper
+xelatex -interaction=nonstopmode paper.tex
+xelatex -interaction=nonstopmode paper.tex
+```
+
+等价：`latexmk -xelatex -interaction=nonstopmode paper.tex`（若环境有 latexmk）。
+
+**编译失败：** 修 `paper.tex`（缺图→补图或改路径；缺包→补 `\usepackage`；Overfull→改表格/换行），不得用「只有 tex 没有 pdf」交 S5。
+
+### 推荐导言区（国赛中文）
+
+新建 `paper.tex` 时从下列骨架起步（可按题微调；与仓库 `2/2016A-mooring/paper/paper.tex` 同族）：
+
+```latex
+% !TEX program = xelatex
+\documentclass[UTF8,a4paper,zihao=-4]{ctexart}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,bm,amsthm}
+\usepackage{graphicx,booktabs,tabularx,multirow}
+\usepackage{siunitx,caption,subcaption,float}
+\usepackage{hyperref,xcolor,enumitem,setspace}
+\graphicspath{{../results/}}
+\sisetup{detect-all=true}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue!50!black}
+```
+
+正文结构用 `\section` / `\subsection` / `\subsubsection`；**不要**手写「一、」「5.1」纯文本标题（交给 ctex 自动编号）。
+
+### 国赛目录 → LaTeX 映射
+
+| 报告章节 | LaTeX |
+|----------|--------|
+| 摘要 + 关键词 | `\begin{abstract}...\end{abstract}`；关键词用 `\noindent\textbf{关键词：}...` |
+| 一、问题重述 | `\section{问题重述}`；`\subsection{问题背景}` / `\subsection{问题提出}` |
+| 二、模型假设 | `\section{模型假设}`；`\begin{enumerate}` 编号假设 |
+| 三、符号说明 | `\section{符号说明}`；`booktabs` 三线表 |
+| 四、问题分析 | `\section{问题分析}`；`\subsection{问题一的分析}` … |
+| 五、模型的建立与求解 | `\section{模型的建立与求解}` |
+| 5.k 问题 k | `\subsection{问题k模型的建立与求解}\label{sec:qk}` |
+| 5.k.1 某模型建立 | `\subsubsection{...模型的建立}` |
+| 5.k.m 求解 | `\subsubsection{模型的求解}` |
+| 5.k.(m+1) 检验 | `\subsubsection{模型的检验}`（可选） |
+| 六、检验与灵敏度 | `\section{模型的检验与灵敏度分析}`（或并入各题检验小节） |
+| 七、模型评价 | `\section{模型评价}`；`\subsection{优点}` / `\subsection{缺点与局限}` |
+| 八、改进与推广 | `\section{模型的改进与推广}` |
+| 参考文献 | `\begin{thebibliography}` 或 `biblatex` |
+| 附录 | `\appendix` + `\section{...}` |
+
+### 常用环境对照
+
+| 写作元素 | LaTeX 写法 |
+|----------|------------|
+| 分析点 `● 对××的分析` | `\begin{itemize}[leftmargin=*]\item \textbf{对××的分析}：...` |
+| 编号公式 | `\begin{equation}...\label{eq:tag}\end{equation}`；正文 `式~\eqref{eq:tag}` |
+| 流程图/示意图 | `\begin{figure}[htbp]\centering\includegraphics[width=...]{fig_...}\caption{问题一流程图}\label{fig:q1flow}\end{figure}` |
+| 三线表 | `tabular` + `\toprule\midrule\bottomrule`；`\caption` + `\label{tab:...}` |
+| 算法步骤框 | `\begin{center}\fbox{\begin{minipage}{0.92\textwidth}\textbf{算法步骤}\\ Step1: ...\end{minipage}}\end{center}` 或 `description` 环境 |
+| Step / Case | `\paragraph{Step1：...}` 或 `\textbf{Case 1.}` |
+| 单位与数字 | `siunitx`：`\SI{1.391}{s}`、`\num{1.391}` |
+| 相对路径插图 | 图文件放 `results/`，tex 中只写文件名 |
+
+### 插图与表格纪律
+
+- 图在 `results/` 生成（Python 等），tex **只引用**；R2 前确保文件存在  
+- 每张图/表在正文至少引用一次（`图~\ref{...}` / `表~\ref{...}`）  
+- 流程图优先：每题 `5.k` 至少 1 张总流程图（可用 drawio / matplotlib / mermaid 导出 PDF 或 PNG）
 
 ---
 
@@ -153,6 +240,7 @@ All required unless force-deliver:
 - [ ] Judge: no unanswered; suite-model risk ≠ high (or mitigated)  
 - [ ] No numbers outside Freeze; no 完美/绝对/毫无疑问  
 - [ ] Structure matches §Paper format（或用户显式指定的替代模板）  
+- [ ] `paper/paper.pdf` 存在且由当前 `paper.tex` 编译生成  
 - [ ] 文风：无高频 AI 套话；关键公式前有解释；朗读不拗口  
 
 ```markdown
