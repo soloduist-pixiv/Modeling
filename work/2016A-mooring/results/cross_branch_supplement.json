@@ -1,0 +1,419 @@
+{
+  "note": "Supplements after reviewing cursor/mooring-system-2016a-47ef",
+  "M0_vs_A_vs_B": [
+    {
+      "v_wind": 12.0,
+      "M0_straight": {
+        "draft_m": 0.6853,
+        "swim_radius_m": 12.2716,
+        "barrel_angle_deg": 1.1915,
+        "pipe_angles_deg": [
+          1.1502,
+          1.1579,
+          1.1657,
+          1.1736
+        ],
+        "anchor_angle_deg": 0.0,
+        "grounded_length_m": 4.9732,
+        "depth_err_m": 3.1706,
+        "H_N": 236.6471
+      },
+      "A_discrete": {
+        "ok": true,
+        "message": "ok",
+        "family": "A",
+        "v_wind": 12.0,
+        "v_cur": 0.0,
+        "depth": 18.0,
+        "ball_mass": 1200.0,
+        "chain_type": "II",
+        "chain_length": 22.05,
+        "draft_m": 0.6829,
+        "swim_radius_m": 14.6544,
+        "anchor_angle_deg": 0.0,
+        "barrel_angle_deg": 1.2017,
+        "pipe_angles_deg": [
+          1.1598,
+          1.1676,
+          1.1755,
+          1.1835
+        ],
+        "grounded_length_m": 6.2492,
+        "suspended_chain_m": 15.8008,
+        "H_N": 237.08,
+        "constraint_anchor_ok": true,
+        "constraint_barrel_ok": true
+      },
+      "B_catenary": {
+        "ok": true,
+        "message": "ok",
+        "family": "B",
+        "v_wind": 12.0,
+        "v_cur": 0.0,
+        "depth": 18.0,
+        "ball_mass": 1200.0,
+        "chain_type": "II",
+        "chain_length": 22.05,
+        "draft_m": 0.6829,
+        "swim_radius_m": 14.6543,
+        "anchor_angle_deg": 0.0,
+        "barrel_angle_deg": 1.2017,
+        "pipe_angles_deg": [
+          1.1598,
+          1.1676,
+          1.1755,
+          1.1835
+        ],
+        "grounded_length_m": 6.2491,
+        "suspended_chain_m": 15.8009,
+        "H_N": 237.08,
+        "constraint_anchor_ok": true,
+        "constraint_barrel_ok": true
+      },
+      "swim_A_minus_M0_m": 2.3828
+    },
+    {
+      "v_wind": 24.0,
+      "M0_straight": {
+        "draft_m": 0.7,
+        "swim_radius_m": 16.9279,
+        "barrel_angle_deg": 4.5193,
+        "pipe_angles_deg": [
+          4.369,
+          4.397,
+          4.4254,
+          4.4541
+        ],
+        "anchor_angle_deg": 41.394,
+        "grounded_length_m": 0.0,
+        "depth_err_m": 2.2652,
+        "H_N": 936.0
+      },
+      "A_discrete": {
+        "ok": true,
+        "message": "ok",
+        "family": "A",
+        "v_wind": 24.0,
+        "v_cur": 0.0,
+        "depth": 18.0,
+        "ball_mass": 1200.0,
+        "chain_type": "II",
+        "chain_length": 22.05,
+        "draft_m": 0.697,
+        "swim_radius_m": 17.7796,
+        "anchor_angle_deg": 4.6608,
+        "barrel_angle_deg": 4.5658,
+        "pipe_angles_deg": [
+          4.4128,
+          4.4413,
+          4.4701,
+          4.4993
+        ],
+        "grounded_length_m": 0.0,
+        "suspended_chain_m": 22.05,
+        "H_N": 938.15,
+        "constraint_anchor_ok": true,
+        "constraint_barrel_ok": true
+      },
+      "B_catenary": {
+        "ok": true,
+        "message": "ok",
+        "family": "B",
+        "v_wind": 24.0,
+        "v_cur": 0.0,
+        "depth": 18.0,
+        "ball_mass": 1200.0,
+        "chain_type": "II",
+        "chain_length": 22.05,
+        "draft_m": 0.697,
+        "swim_radius_m": 17.7796,
+        "anchor_angle_deg": 4.4708,
+        "barrel_angle_deg": 4.5658,
+        "pipe_angles_deg": [
+          4.4128,
+          4.4413,
+          4.4701,
+          4.4993
+        ],
+        "grounded_length_m": 0.0,
+        "suspended_chain_m": 22.05,
+        "H_N": 938.15,
+        "constraint_anchor_ok": true,
+        "constraint_barrel_ok": true
+      },
+      "swim_A_minus_M0_m": 0.8517
+    },
+    {
+      "v_wind": 36.0,
+      "M0_straight": {
+        "draft_m": 0.7147,
+        "swim_radius_m": 19.5669,
+        "barrel_angle_deg": 9.6034,
+        "pipe_angles_deg": [
+          9.3,
+          9.3566,
+          9.4139,
+          9.4719
+        ],
+        "anchor_angle_deg": 31.7621,
+        "grounded_length_m": 0.0,
+        "depth_err_m": 0.7459,
+        "H_N": 2082.1765
+      },
+      "A_discrete": {
+        "ok": true,
+        "message": "ok",
+        "family": "A",
+        "v_wind": 36.0,
+        "v_cur": 0.0,
+        "depth": 18.0,
+        "ball_mass": 1200.0,
+        "chain_type": "II",
+        "chain_length": 22.05,
+        "draft_m": 0.7198,
+        "swim_radius_m": 18.872,
+        "anchor_angle_deg": 20.9628,
+        "barrel_angle_deg": 9.4458,
+        "pipe_angles_deg": [
+          9.1509,
+          9.2059,
+          9.2616,
+          9.318
+        ],
+        "grounded_length_m": 0.0,
+        "suspended_chain_m": 22.05,
+        "H_N": 2073.97,
+        "constraint_anchor_ok": false,
+        "constraint_barrel_ok": false
+      },
+      "B_catenary": {
+        "ok": true,
+        "message": "ok",
+        "family": "B",
+        "v_wind": 36.0,
+        "v_cur": 0.0,
+        "depth": 18.0,
+        "ball_mass": 1200.0,
+        "chain_type": "II",
+        "chain_length": 22.05,
+        "draft_m": 0.7198,
+        "swim_radius_m": 18.872,
+        "anchor_angle_deg": 20.8874,
+        "barrel_angle_deg": 9.4458,
+        "pipe_angles_deg": [
+          9.1509,
+          9.2059,
+          9.2616,
+          9.318
+        ],
+        "grounded_length_m": 0.0,
+        "suspended_chain_m": 22.05,
+        "H_N": 2073.97,
+        "constraint_anchor_ok": false,
+        "constraint_barrel_ok": false
+      },
+      "swim_A_minus_M0_m": -0.6949
+    }
+  ],
+  "q2_mass_crosscheck_on_our_model": [
+    {
+      "ok": true,
+      "message": "ok",
+      "family": "A",
+      "v_wind": 36.0,
+      "v_cur": 0.0,
+      "depth": 18.0,
+      "ball_mass": 1973.0,
+      "chain_type": "II",
+      "chain_length": 22.05,
+      "draft_m": 0.9207,
+      "swim_radius_m": 18.5997,
+      "anchor_angle_deg": 17.4233,
+      "barrel_angle_deg": 5.3117,
+      "pipe_angles_deg": [
+        5.1993,
+        5.2204,
+        5.2417,
+        5.2632
+      ],
+      "grounded_length_m": 0.0,
+      "suspended_chain_m": 22.05,
+      "H_N": 1748.48,
+      "constraint_anchor_ok": false,
+      "constraint_barrel_ok": false
+    },
+    {
+      "ok": true,
+      "message": "ok",
+      "family": "A",
+      "v_wind": 36.0,
+      "v_cur": 0.0,
+      "depth": 18.0,
+      "ball_mass": 2100.0,
+      "chain_type": "II",
+      "chain_length": 22.05,
+      "draft_m": 0.9538,
+      "swim_radius_m": 18.5677,
+      "anchor_angle_deg": 16.7574,
+      "barrel_angle_deg": 4.8804,
+      "pipe_angles_deg": [
+        4.7823,
+        4.8008,
+        4.8194,
+        4.8381
+      ],
+      "grounded_length_m": 0.0,
+      "suspended_chain_m": 22.05,
+      "H_N": 1694.9,
+      "constraint_anchor_ok": false,
+      "constraint_barrel_ok": true
+    },
+    {
+      "ok": true,
+      "message": "ok",
+      "family": "A",
+      "v_wind": 36.0,
+      "v_cur": 0.0,
+      "depth": 18.0,
+      "ball_mass": 2238.0,
+      "chain_type": "II",
+      "chain_length": 22.05,
+      "draft_m": 0.9897,
+      "swim_radius_m": 18.5343,
+      "anchor_angle_deg": 15.9959,
+      "barrel_angle_deg": 4.4596,
+      "pipe_angles_deg": [
+        4.3747,
+        4.3907,
+        4.4068,
+        4.4231
+      ],
+      "grounded_length_m": 0.0,
+      "suspended_chain_m": 22.05,
+      "H_N": 1636.66,
+      "constraint_anchor_ok": true,
+      "constraint_barrel_ok": true
+    },
+    {
+      "ok": true,
+      "message": "ok",
+      "family": "A",
+      "v_wind": 36.0,
+      "v_cur": 0.0,
+      "depth": 18.0,
+      "ball_mass": 2300.0,
+      "chain_type": "II",
+      "chain_length": 22.05,
+      "draft_m": 1.0059,
+      "swim_radius_m": 18.5196,
+      "anchor_angle_deg": 15.6397,
+      "barrel_angle_deg": 4.2848,
+      "pipe_angles_deg": [
+        4.2051,
+        4.2202,
+        4.2353,
+        4.2505
+      ],
+      "grounded_length_m": 0.0,
+      "suspended_chain_m": 22.05,
+      "H_N": 1610.48,
+      "constraint_anchor_ok": true,
+      "constraint_barrel_ok": true
+    }
+  ],
+  "q3_full27_candidates": [
+    {
+      "chain_type": "V",
+      "chain_length": 22.05,
+      "ball_mass": 5000.0,
+      "n_ok": 27,
+      "n_total": 27,
+      "feasible_all": true,
+      "worst": {
+        "barrel": 4.5614,
+        "anchor": 9.0322,
+        "swim": 19.3901,
+        "draft": 1.8648
+      },
+      "fails": [],
+      "label": "ours_primary"
+    },
+    {
+      "chain_type": "V",
+      "chain_length": 22.05,
+      "ball_mass": 4500.0,
+      "n_ok": 27,
+      "n_total": 27,
+      "feasible_all": true,
+      "worst": {
+        "barrel": 4.9947,
+        "anchor": 9.6788,
+        "swim": 19.3593,
+        "draft": 1.7311
+      },
+      "fails": [],
+      "label": "ours_lighter_ball"
+    },
+    {
+      "chain_type": "V",
+      "chain_length": 26.0,
+      "ball_mass": 4500.0,
+      "n_ok": 27,
+      "n_total": 27,
+      "feasible_all": true,
+      "worst": {
+        "barrel": 4.9947,
+        "anchor": 0.0,
+        "swim": 23.3093,
+        "draft": 1.7292
+      },
+      "fails": [],
+      "label": "alt_longer_chain_47ef_style"
+    },
+    {
+      "chain_type": "V",
+      "chain_length": 26.0,
+      "ball_mass": 5000.0,
+      "n_ok": 27,
+      "n_total": 27,
+      "feasible_all": true,
+      "worst": {
+        "barrel": 4.5614,
+        "anchor": 0.0,
+        "swim": 23.3401,
+        "draft": 1.8631
+      },
+      "fails": [],
+      "label": "alt_V_26_5000"
+    },
+    {
+      "chain_type": "V",
+      "chain_length": 24.0,
+      "ball_mass": 4500.0,
+      "n_ok": 27,
+      "n_total": 27,
+      "feasible_all": true,
+      "worst": {
+        "barrel": 4.9947,
+        "anchor": 1.79,
+        "swim": 21.3093,
+        "draft": 1.7293
+      },
+      "fails": [],
+      "label": "alt_V_24_4500"
+    }
+  ],
+  "branch_47ef_diff_notes": {
+    "their_main_model": "tension propagation θ=arctan(H/V) + analytic catenary cosh; draft by |V_end|~0 after ball, chain weight not in buoy vertical balance",
+    "our_main_model": "rigid-rod moment θ=arctan(H/(V-G/2)) + discrete chain; draft closes geometry; chain+ball buoyancy included",
+    "their_q2_ball_kg": 1973,
+    "our_q2_ball_kg": 2238,
+    "why_higher_here": [
+      "include ball & chain buoyancy → less net hanging weight per kg ball → need heavier ball for same restoring",
+      "include full chain weight in vertical/grounding logic",
+      "moment form uses V-G/2 (slightly different θ)"
+    ],
+    "their_suspicious_36ms_swim": "they report R≈11.9m at 36m/s < R at 24m/s; our R increases with wind (physically expected for fixed chain when fully suspended)",
+    "q3_tradeoff": "V/22.05/5000 minimizes worst swim (~19.4m) on our model; V/26/4500 feasible with more grounded chain but worst swim ~23.3m"
+  }
+}
